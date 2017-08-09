@@ -7,27 +7,48 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
-import fr.altoine.instatrain.models.retrofit.Traffic;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+public class MainActivity extends AppCompatActivity implements
+        NoConnectionListener,
+        View.OnClickListener {
 
-public class MainActivity extends AppCompatActivity {
+
+
+    // Constants ----------------------------------------------------------------------------------
+
+    private final String TAG = MainActivity.class.getSimpleName();
+
+
+
+    // UI Components ------------------------------------------------------------------------------
 
     private TransportsPagerAdapter mTransportsPagerAdapter;
     private ViewPager mViewPager;
+    private ImageView mNoConnectionImage;
+    private TextView mNoConnectionText;
+    private Button mRetryAction;
+
+
+
+    // Activity lifecycle -------------------------------------------------------------------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        mNoConnectionImage = (ImageView) findViewById(R.id.iv_no_connection);
+        mNoConnectionText = (TextView) findViewById(R.id.tv_no_connection);
+        mRetryAction = (Button) findViewById(R.id.btn_retry);
+        mRetryAction.setOnClickListener(this);
+
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -41,33 +62,8 @@ public class MainActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-//        tabLayout.addOnTabSelectedListener(new OnTransportsChangeListener(mViewPager));
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("https://api-ratp.pierre-grimaud.fr/v3/")
-                .build();
-
-        IMetroService metroService = retrofit.create(IMetroService.class);
-        Call<Traffic> foo = metroService.getTraffic();
-
-        foo.enqueue(new Callback<Traffic>() {
-            @Override
-            public void onResponse(Call<Traffic> call, Response<Traffic> response) {
-                if (response.isSuccessful()) {
-                    Traffic bar = response.body();
-                } else {
-                    Log.v("ASOU", "Response unsuccessful");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Traffic> call, Throwable t) {
-                // TODO: there's probably no internet if it arrives here
-                Log.d("ASOU", t.getMessage());
-            }
-        });
-
+        // Set up the FloatingActionButton for other than Traffic tabs
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,13 +73,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // The FloatingActionButton is to add routes only, not for Traffic tab
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                if (tab.getPosition() == 0)
+//                hideNoConnection();
+
+                if (tab.getPosition() == 0) {
                     fab.hide();
-                else
+                } else {
                     fab.show();
+                }
             }
 
             @Override
@@ -95,16 +95,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private TransportsPagerAdapter setUpPagerAdapter() {
-        TransportsPagerAdapter adapter = new TransportsPagerAdapter(getSupportFragmentManager());
+        TransportsPagerAdapter adapter = new TransportsPagerAdapter(getFragmentManager());
         adapter.addFragment(new TrafficFragment(), "Traffic");
         adapter.addFragment(new TransportsFragment(), "Metro");
-//        adapter.addFragment(TransportsFragment.newInstance(1), "Metros");
         adapter.addFragment(new TransportsFragment(), "Rer");
         adapter.addFragment(new TransportsFragment(), "Tramway");
 
         return adapter;
     }
 
+
+
+    // App logic ----------------------------------------------------------------------------------
+
+    @Override
+    public void showNoConnection() {
+        mNoConnectionImage.setVisibility(View.VISIBLE);
+        mNoConnectionText.setVisibility(View.VISIBLE);
+        mRetryAction.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideNoConnection() {
+        mNoConnectionImage.setVisibility(View.INVISIBLE);
+        mNoConnectionText.setVisibility(View.INVISIBLE);
+        mRetryAction.setVisibility(View.INVISIBLE);
+    }
+
+
+    // Handle user's click ------------------------------------------------------------------------
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+
+        switch (id) {
+            case R.id.btn_retry:
+                break;
+        }
+    }
+
+
+
+    // Menu ---------------------------------------------------------------------------------------
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -116,10 +149,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            // TODO: launch settings fragment
-            return true;
+        switch (id) {
+            case R.id.action_settings:
+                // TODO: launch settings fragment
+                return true;
+            default:
+                break;
         }
 
         return super.onOptionsItemSelected(item);

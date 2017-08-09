@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">InstaTrain</string>
 
+    <string name="no_internet">No connection available.</string>
+    <string name="retry">Retry</string>
+
     <!-- TODO: Remove or change these placeholder texts -->
     <string name="rer_tmp">RER</string>
     <string name="metro_tmp">Metro</string>

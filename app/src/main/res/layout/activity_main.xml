@@ -21,15 +21,12 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|enterAlways"
-            app:popupTheme="@style/AppTheme.PopupOverlay">
-
-        </android.support.v7.widget.Toolbar>
+            app:popupTheme="@style/AppTheme.PopupOverlay"/>
 
         <android.support.design.widget.TabLayout
             android:id="@+id/tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-
     </android.support.design.widget.AppBarLayout>
 
     <android.support.v4.view.ViewPager
@@ -37,6 +34,54 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+
+    <LinearLayout
+        android:id="@+id/ll_no_connection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:orientation="vertical">
+
+        <View
+            android:visibility="invisible"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/custom_tab_layout_height" />
+
+        <ImageView
+            android:id="@+id/iv_no_connection"
+            android:src="@drawable/ic_cloud_off_black_70dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/iv_no_connection_margin_top"
+            android:visibility="invisible"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/tv_no_connection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:text="@string/no_internet"
+            android:textSize="@dimen/tv_no_connection_text_size"
+            tools:text="@string/no_internet"
+            android:paddingTop="@dimen/tv_no_connection_padding_top"
+            android:layout_gravity="center"/>
+
+        <Button
+            android:id="@+id/btn_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAllCaps="true"
+            android:visibility="invisible"
+            android:text="@string/retry"
+            tools:text="@string/retry"
+            android:textSize="@dimen/tv_retry_text_size"
+            android:textColor="@color/accent"
+            android:layout_marginTop="@dimen/tv_retry_margin_top"
+            android:background="?android:attr/selectableItemBackground"
+            android:layout_gravity="center" />
+    </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
