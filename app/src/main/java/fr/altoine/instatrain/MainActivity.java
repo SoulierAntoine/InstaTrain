@@ -7,10 +7,12 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private TransportsPagerAdapter mTransportsPagerAdapter;
     private ViewPager mViewPager;
+    private FrameLayout mNoConnectionLayout;
     private ImageView mNoConnectionImage;
     private TextView mNoConnectionText;
     private Button mRetryAction;
@@ -44,10 +47,11 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
 
 
-        mNoConnectionImage = (ImageView) findViewById(R.id.iv_no_connection);
-        mNoConnectionText = (TextView) findViewById(R.id.tv_no_connection);
-        mRetryAction = (Button) findViewById(R.id.btn_retry);
-        mRetryAction.setOnClickListener(this);
+        mNoConnectionLayout = (FrameLayout) findViewById(R.id.fl_no_connection);
+//        mNoConnectionImage = (ImageView) findViewById(R.id.iv_no_connection);
+//        mNoConnectionText = (TextView) findViewById(R.id.tv_no_connection);
+//        mRetryAction = (Button) findViewById(R.id.btn_retry);
+//        mRetryAction.setOnClickListener(this);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -78,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
 //                hideNoConnection();
+
+                Log.v(TAG, String.valueOf(tab.getPosition()));
 
                 if (tab.getPosition() == 0) {
                     fab.hide();
@@ -110,16 +116,18 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void showNoConnection() {
-        mNoConnectionImage.setVisibility(View.VISIBLE);
-        mNoConnectionText.setVisibility(View.VISIBLE);
-        mRetryAction.setVisibility(View.VISIBLE);
+//        mNoConnectionImage.setVisibility(View.VISIBLE);
+//        mNoConnectionText.setVisibility(View.VISIBLE);
+//        mRetryAction.setVisibility(View.VISIBLE);
+        mNoConnectionLayout.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void hideNoConnection() {
-        mNoConnectionImage.setVisibility(View.INVISIBLE);
-        mNoConnectionText.setVisibility(View.INVISIBLE);
-        mRetryAction.setVisibility(View.INVISIBLE);
+        mNoConnectionLayout.setVisibility(View.INVISIBLE);
+//        mNoConnectionImage.setVisibility(View.INVISIBLE);
+//        mNoConnectionText.setVisibility(View.INVISIBLE);
+//        mRetryAction.setVisibility(View.INVISIBLE);
     }
 
 

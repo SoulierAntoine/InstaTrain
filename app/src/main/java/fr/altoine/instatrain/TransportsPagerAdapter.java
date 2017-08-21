@@ -9,9 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by soulierantoine on 03/08/2017.
+ * TransportsPagerAdapter - InstaTrain
+ * Created by soulierantoine on 03/08/2017
  */
 
+/*
+ * Using FragmentPagerAdapter because there's a fix number of static Fragment that does not contain a lot of heavy data
+ * See: https://stackoverflow.com/a/18748107
+ */
 public class TransportsPagerAdapter extends FragmentPagerAdapter {
     private List<Fragment> mPagesList = new ArrayList<>();
     private List<String> mTitlesList = new ArrayList<>();
