@@ -13,7 +13,11 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
+import fr.altoine.instatrain.listeners.NoConnectionListener;
+import fr.altoine.instatrain.listeners.RetryActionListener;
 import fr.altoine.instatrain.loader.Callback;
 import fr.altoine.instatrain.loader.RetrofitLoader;
 import fr.altoine.instatrain.loader.RetrofitLoaderManager;
@@ -30,8 +34,8 @@ import retrofit2.Response;
  */
 
 public class TrafficFragment extends Fragment implements
-        Callback<Traffic>,
-        View.OnClickListener {
+        RetryActionListener,
+        Callback<Traffic> {
 
 
 
@@ -74,15 +78,28 @@ public class TrafficFragment extends Fragment implements
      */
     @Override
     public void onSuccess(Traffic result) {
+        mLoading.setVisibility(View.INVISIBLE);
+
         if (result != null) {
             mNoConnectionListener.hideNoConnection();
+            mListTraffic.setVisibility(View.VISIBLE);
             // TODO: display stuff
         }
         else {
             mNoConnectionListener.showNoConnection();
         }
+    }
 
-        hideLoading();
+    @Override
+    public void retryAction(String method, Object... args) {
+        Method m;
+        try {
+            m = TrafficFragment.class.getDeclaredMethod(method);
+            // No need to check if the method is accessible for we call it from the internal object
+            m.invoke(this, args);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -128,21 +145,6 @@ public class TrafficFragment extends Fragment implements
 
 
 
-    // Handle user's click ------------------------------------------------------------------------
-
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-
-        switch (id) {
-            case R.id.btn_retry:
-                loadTraffic();
-                break;
-        }
-    }
-
-
-
     // Fragment's logic ---------------------------------------------------------------------------
 
     private void loadTraffic() {
@@ -151,13 +153,14 @@ public class TrafficFragment extends Fragment implements
     }
 
     private void showLoading() {
+        mNoConnectionListener.hideNoConnection();
         mLoading.setVisibility(View.VISIBLE);
         mListTraffic.setVisibility(View.INVISIBLE);
     }
 
     private void hideLoading() {
         mLoading.setVisibility(View.INVISIBLE);
-//        mListTraffic.setVisibility(View.VISIBLE);
+        mListTraffic.setVisibility(View.VISIBLE);
     }
 
     private static class TrafficLoader extends RetrofitLoader<Traffic, IMetroService> {

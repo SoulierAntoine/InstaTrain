@@ -12,9 +12,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.lang.reflect.Method;
+
+import fr.altoine.instatrain.listeners.NoConnectionListener;
+import fr.altoine.instatrain.listeners.RetryActionListener;
 
 public class MainActivity extends AppCompatActivity implements
         NoConnectionListener,
@@ -32,11 +36,15 @@ public class MainActivity extends AppCompatActivity implements
 
     private TransportsPagerAdapter mTransportsPagerAdapter;
     private ViewPager mViewPager;
-    private FrameLayout mNoConnectionLayout;
+    // private FrameLayout mNoConnectionLayout;
     private ImageView mNoConnectionImage;
     private TextView mNoConnectionText;
     private Button mRetryAction;
 
+
+    // Miscellaneous ------------------------------------------------------------------------------
+
+    private RetryActionListener retryActionListener;
 
 
     // Activity lifecycle -------------------------------------------------------------------------
@@ -47,11 +55,11 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
 
 
-        mNoConnectionLayout = (FrameLayout) findViewById(R.id.fl_no_connection);
-//        mNoConnectionImage = (ImageView) findViewById(R.id.iv_no_connection);
-//        mNoConnectionText = (TextView) findViewById(R.id.tv_no_connection);
-//        mRetryAction = (Button) findViewById(R.id.btn_retry);
-//        mRetryAction.setOnClickListener(this);
+        // mNoConnectionLayout = (FrameLayout) findViewById(R.id.fl_no_connection);
+        mNoConnectionImage = (ImageView) findViewById(R.id.iv_no_connection);
+        mNoConnectionText = (TextView) findViewById(R.id.tv_no_connection);
+        mRetryAction = (Button) findViewById(R.id.btn_retry);
+        mRetryAction.setOnClickListener(this);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -102,7 +110,10 @@ public class MainActivity extends AppCompatActivity implements
 
     private TransportsPagerAdapter setUpPagerAdapter() {
         TransportsPagerAdapter adapter = new TransportsPagerAdapter(getFragmentManager());
-        adapter.addFragment(new TrafficFragment(), "Traffic");
+        TrafficFragment trafficFragment = new TrafficFragment();
+        setRetryActionListener(trafficFragment);
+        adapter.addFragment(trafficFragment, "Traffic");
+
         adapter.addFragment(new TransportsFragment(), "Metro");
         adapter.addFragment(new TransportsFragment(), "Rer");
         adapter.addFragment(new TransportsFragment(), "Tramway");
@@ -116,18 +127,22 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void showNoConnection() {
-//        mNoConnectionImage.setVisibility(View.VISIBLE);
-//        mNoConnectionText.setVisibility(View.VISIBLE);
-//        mRetryAction.setVisibility(View.VISIBLE);
-        mNoConnectionLayout.setVisibility(View.VISIBLE);
+        mNoConnectionImage.setVisibility(View.VISIBLE);
+        mNoConnectionText.setVisibility(View.VISIBLE);
+        mRetryAction.setVisibility(View.VISIBLE);
+        // mNoConnectionLayout.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void hideNoConnection() {
-        mNoConnectionLayout.setVisibility(View.INVISIBLE);
-//        mNoConnectionImage.setVisibility(View.INVISIBLE);
-//        mNoConnectionText.setVisibility(View.INVISIBLE);
-//        mRetryAction.setVisibility(View.INVISIBLE);
+        // mNoConnectionLayout.setVisibility(View.INVISIBLE);
+        mNoConnectionImage.setVisibility(View.INVISIBLE);
+        mNoConnectionText.setVisibility(View.INVISIBLE);
+        mRetryAction.setVisibility(View.INVISIBLE);
+    }
+
+    private void setRetryActionListener(RetryActionListener listener) {
+        this.retryActionListener = listener;
     }
 
 
@@ -137,8 +152,19 @@ public class MainActivity extends AppCompatActivity implements
     public void onClick(View v) {
         int id = v.getId();
 
+        // TODO: implementation of 'retryAction' shouldn't be class specific.
+        // Considering it'd work with every class. Maybe get rid of the RetryActionListener.
+        // Then make fragments class member so they can be accessed from this onClick method.
+        // Then just change the string corresponding to the name of the method accordingly.
         switch (id) {
             case R.id.btn_retry:
+                Method[] methods = TrafficFragment.class.getDeclaredMethods();
+                for (Method method : methods) {
+                    if (method.getName().equals("loadTraffic")) {
+                        retryActionListener.retryAction("loadTraffic");
+                        break;
+                    }
+                }
                 break;
         }
     }

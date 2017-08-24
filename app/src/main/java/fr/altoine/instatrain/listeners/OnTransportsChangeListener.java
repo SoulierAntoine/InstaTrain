@@ -1,4 +1,4 @@
-package fr.altoine.instatrain;
+package fr.altoine.instatrain.listeners;
 
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
