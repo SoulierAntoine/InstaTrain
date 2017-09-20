@@ -5,18 +5,22 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 /**
- * Traffic - InstaTrain
+ * ResponseTraffic - InstaTrain
  * Created by soulierantoine on 03/08/2017
  */
 
 /*
  * Sole purpose of this class it to mimic API JSON response
  */
-public class Traffic {
+public class ResponseTraffic {
     @SerializedName("result")
     private Result result;
 
-    class Result {
+    public Result getResult() {
+        return result;
+    }
+
+    public class Result {
         @SerializedName("metros")
         private List<Metro> metros;
 
@@ -25,6 +29,18 @@ public class Traffic {
 
         @SerializedName("tramways")
         private List<Tramway> tramways;
+
+        public List<Metro> getMetros() {
+            return metros;
+        }
+
+        public List<Rer> getRers() {
+            return rers;
+        }
+
+        public List<Tramway> getTramways() {
+            return tramways;
+        }
 
         class Transports {
             @SerializedName("line")
@@ -56,20 +72,21 @@ public class Traffic {
             }
         }
 
-        class Metro extends Transports {
+        public class Metro extends Transports {
             @Override
             public String toString() {
                 return "Metro " + super.getLine() + ": " + super.getSlug() + "\n";
             }
         }
 
-        class Rer extends Transports {
+        public class Rer extends Transports {
             @Override
             public String toString() {
                 return "Rer " + super.getLine() + ": " + super.getSlug() + "\n";
             }
         }
-        class Tramway extends Transports {
+
+        public class Tramway extends Transports {
             @Override
             public String toString() {
                 return "Tramway " + super.getLine() + ": " + super.getSlug() + "\n";

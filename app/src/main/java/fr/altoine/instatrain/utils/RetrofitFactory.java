@@ -3,6 +3,7 @@ package fr.altoine.instatrain.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.altoine.instatrain.net.ResponseTraffic;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -37,7 +38,7 @@ public class RetrofitFactory {
     }
 
     /**
-     * Get Retrofit API Instances (such as {@link fr.altoine.instatrain.net.Traffic}.
+     * Get Retrofit API Instances (such as {@link ResponseTraffic}.
      * The instances are stored in a map.
      * And if one is required several times, it is only created once.
      * See: https://stackoverflow.com/a/25277104

@@ -4,6 +4,8 @@ package fr.altoine.instatrain;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -21,7 +23,7 @@ import fr.altoine.instatrain.listeners.RetryActionListener;
 import fr.altoine.instatrain.loader.Callback;
 import fr.altoine.instatrain.loader.RetrofitLoader;
 import fr.altoine.instatrain.loader.RetrofitLoaderManager;
-import fr.altoine.instatrain.net.Traffic;
+import fr.altoine.instatrain.net.ResponseTraffic;
 import fr.altoine.instatrain.utils.Constants;
 import fr.altoine.instatrain.utils.RetrofitFactory;
 import retrofit2.Call;
@@ -35,7 +37,7 @@ import retrofit2.Response;
 
 public class TrafficFragment extends Fragment implements
         RetryActionListener,
-        Callback<Traffic> {
+        Callback<ResponseTraffic> {
 
 
 
@@ -56,12 +58,17 @@ public class TrafficFragment extends Fragment implements
 
     private RecyclerView mListTraffic;
     private ProgressBar mLoading;
-
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
 
     // Default constructor ------------------------------------------------------------------------
 
     public TrafficFragment() {}
+
+
+    // Miscellaneous ------------------------------------------------------------------------------
+
+    private TrafficAdapter mTrafficAdapter;
 
 
 
@@ -77,19 +84,36 @@ public class TrafficFragment extends Fragment implements
      * @param result containing the current traffic.
      */
     @Override
-    public void onSuccess(Traffic result) {
-        mLoading.setVisibility(View.INVISIBLE);
+    public void onSuccess(ResponseTraffic result) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        if (!mSwipeRefreshLayout.isEnabled())
+            mSwipeRefreshLayout.setEnabled(true);
+        mLoading.setVisibility(View.GONE);
 
-        if (result != null) {
+        // Check if the fragment is attached to activity before getting Context from Activity
+        if (result != null && isAdded()) {
             mNoConnectionListener.hideNoConnection();
             mListTraffic.setVisibility(View.VISIBLE);
-            // TODO: display stuff
+
+            if (mTrafficAdapter != null) {
+                mTrafficAdapter.reloadResponse(result);
+            } else {
+                mTrafficAdapter = new TrafficAdapter(getActivity(), result);
+                mTrafficAdapter.shouldShowFooters(false);
+                mTrafficAdapter.shouldShowHeadersForEmptySections(false);
+                mListTraffic.setAdapter(mTrafficAdapter);
+            }
         }
         else {
             mNoConnectionListener.showNoConnection();
         }
     }
 
+    /**
+     * Reload traffic
+     * @param method name of the method to be called, for now, only one methid is called from MainActivity : loadTraffic
+     * @param args args to be sent to the called method
+     */
     @Override
     public void retryAction(String method, Object... args) {
         Method m;
@@ -109,18 +133,14 @@ public class TrafficFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_traffic, container, false);
-
         mLoading = (ProgressBar) rootView.findViewById(R.id.pb_traffic_loading);
-
-        TrafficAdapter adapter = new TrafficAdapter(rootView.getContext());
-
-        LinearLayoutManager layoutManager =
-                new LinearLayoutManager(rootView.getContext(), LinearLayoutManager.VERTICAL, false);
-
-        mListTraffic = (RecyclerView) rootView.findViewById(R.id.rv_traffic);
-        mListTraffic.setLayoutManager(layoutManager);
-        mListTraffic.setAdapter(adapter);
-
+        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.srl_swipe_container);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadTraffic();
+            }
+        });
         return rootView;
     }
 
@@ -128,7 +148,16 @@ public class TrafficFragment extends Fragment implements
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        // TODO: change Interface: we're getting the whole traffic here, not just the metro
         mMetroService = RetrofitFactory.getApi(IMetroService.class);
+
+        // Load recycle view but do not fill it with data as long as the network call is not finished
+        mListTraffic = (RecyclerView) getActivity().findViewById(R.id.rv_traffic);
+        LinearLayoutManager layoutManager =
+                new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
+        /* GridLayoutManager layoutManager =
+                new GridLayoutManager(getActivity(), 5, GridLayoutManager.VERTICAL, false); */
+        mListTraffic.setLayoutManager(layoutManager);
 
         loadTraffic();
     }
@@ -154,16 +183,12 @@ public class TrafficFragment extends Fragment implements
 
     private void showLoading() {
         mNoConnectionListener.hideNoConnection();
-        mLoading.setVisibility(View.VISIBLE);
         mListTraffic.setVisibility(View.INVISIBLE);
+        mSwipeRefreshLayout.setEnabled(false);
+        mLoading.setVisibility(View.VISIBLE);
     }
 
-    private void hideLoading() {
-        mLoading.setVisibility(View.INVISIBLE);
-        mListTraffic.setVisibility(View.VISIBLE);
-    }
-
-    private static class TrafficLoader extends RetrofitLoader<Traffic, IMetroService> {
+    private static class TrafficLoader extends RetrofitLoader<ResponseTraffic, IMetroService> {
         private final String TAG = TrafficLoader.class.getSimpleName();
 
         TrafficLoader(Context context, IMetroService service) {
@@ -177,9 +202,9 @@ public class TrafficFragment extends Fragment implements
          * @return current traffic.
          */
         @Override
-        public Traffic call(IMetroService service) {
-            Call<Traffic> request = service.getTraffic();
-            Response<Traffic> response = null;
+        public ResponseTraffic call(IMetroService service) {
+            Call<ResponseTraffic> request = service.getTraffic();
+            Response<ResponseTraffic> response = null;
             try {
                 response = request.execute();
             } catch (IOException e) {

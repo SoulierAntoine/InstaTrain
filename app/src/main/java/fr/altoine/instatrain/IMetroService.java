@@ -1,6 +1,6 @@
 package fr.altoine.instatrain;
 
-import fr.altoine.instatrain.net.Traffic;
+import fr.altoine.instatrain.net.ResponseTraffic;
 import retrofit2.Call;
 import retrofit2.http.GET;
 
@@ -10,5 +10,5 @@ import retrofit2.http.GET;
  */
 public interface IMetroService {
     @GET("traffic")
-    Call<Traffic> getTraffic();
+    Call<ResponseTraffic> getTraffic();
 }

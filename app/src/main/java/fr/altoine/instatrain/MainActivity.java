@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        // Set up the FloatingActionButton for other than Traffic tabs
+        // Set up the FloatingActionButton for other than ResponseTraffic tabs
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        // The FloatingActionButton is to add routes only, not for Traffic tab
+        // The FloatingActionButton is to add routes only, not for ResponseTraffic tab
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {

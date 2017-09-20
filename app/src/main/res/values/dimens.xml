@@ -19,4 +19,12 @@
 
     <dimen name="tv_retry_margin_top">8dp</dimen>
     <dimen name="tv_retry_text_size">17sp</dimen>
+
+    <!-- List header -->
+    <dimen name="content_inset_half">8dp</dimen>
+    <dimen name="content_inset">16dp</dimen>
+
+    <!-- List padding -->
+    <dimen name="list_item_padding_horizontal">16dp</dimen>
+    <dimen name="list_item_padding_vertical">12dp</dimen>
 </resources>
