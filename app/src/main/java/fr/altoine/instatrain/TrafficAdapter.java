@@ -1,10 +1,15 @@
 package fr.altoine.instatrain;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +17,11 @@ import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.afollestad.sectionedrecyclerview.ItemCoord;
 import com.afollestad.sectionedrecyclerview.SectionedRecyclerViewAdapter;
 import com.afollestad.sectionedrecyclerview.SectionedViewHolder;
+
+import java.util.List;
 
 import fr.altoine.instatrain.net.ResponseTraffic;
 import fr.altoine.instatrain.utils.Constants;
@@ -26,16 +34,22 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
     private Context mContext;
     private ResponseTraffic mResponseTraffic;
 
-    public TrafficAdapter(Context context, ResponseTraffic responseTraffic) {
+    public TrafficAdapter(Context context, ResponseTraffic responseTraffic, TrafficAdapterOnClickHandler clickHandler) {
         mContext = context;
         mResponseTraffic = responseTraffic;
+        mClickHandler = clickHandler;
+    }
+
+    private final TrafficAdapterOnClickHandler mClickHandler;
+
+    public interface TrafficAdapterOnClickHandler {
+        void onClick(ResponseTraffic.Result.Transports transport);
     }
 
     public void reloadResponse(ResponseTraffic responseTraffic) {
         mResponseTraffic = responseTraffic;
         notifyDataSetChanged();
     }
-
 
     @Override
     public TrafficViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -87,7 +101,6 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
 
     @Override
     public void onBindViewHolder(TrafficViewHolder holder, int section, int relativePosition, int absolutePosition) {
-
         if (mResponseTraffic.getResult().getMetros().size() > 0 && section == 0) {
             displayTrafficMetros(holder, relativePosition);
         }
@@ -100,23 +113,69 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
         }
     }
 
-    static class TrafficViewHolder extends SectionedViewHolder {
-        ImageView mIconTraffic;
-        final TextView mStateTraffic;
+    class TrafficViewHolder extends SectionedViewHolder implements View.OnClickListener {
+        final ImageView mIconTraffic;
+        // final TextView mStateTraffic;
         final TextView mSectionTitle;
+        final ImageView mImageWorks;
+        final ImageView mTrafficFrame;
 
-        TrafficViewHolder(View itemView) {
-            super(itemView);
-            mIconTraffic = (ImageView) itemView.findViewById(R.id.iv_icon);
-            mStateTraffic = (TextView) itemView.findViewById(R.id.tv_state);
-            mSectionTitle = (TextView) itemView.findViewById(R.id.tv_title);
+        @Override
+        public void onClick(View v) {
+            if (isHeader() || isFooter())
+                return;
+
+            ItemCoord position = getRelativePosition();
+            int section = position.section();
+            int relativePos = position.relativePos();
+            if (getAdapterPosition() != RecyclerView.NO_POSITION) {
+                switch (section) {
+                    case 0:
+                        mClickHandler.onClick(mResponseTraffic.getResult().getMetros().get(relativePos));
+                        break;
+                    case 1:
+                        mClickHandler.onClick(mResponseTraffic.getResult().getRers().get(relativePos));
+                        break;
+                    case 2:
+                        mClickHandler.onClick(mResponseTraffic.getResult().getTramways().get(relativePos));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        TrafficViewHolder(View view) {
+            super(view);
+            // mStateTraffic = (TextView) view.findViewById(R.id.tv_state);
+            mIconTraffic = (ImageView) view.findViewById(R.id.iv_icon);
+            mSectionTitle = (TextView) view.findViewById(R.id.tv_title);
+            mTrafficFrame = (ImageView) view.findViewById(R.id.iv_frame);
+            mImageWorks = (ImageView) view.findViewById(R.id.iv_works);
+            
+            view.setOnClickListener(this);
         }
     }
 
 
     private void displayTrafficMetros(TrafficViewHolder holder, int position) {
         ResponseTraffic.Result.Metro currentMetro = mResponseTraffic.getResult().getMetros().get(position);
-        holder.mStateTraffic.setText(currentMetro.getTitle());
+        // holder.mStateTraffic.setText(currentMetro.getTitle());
+
+
+        // TODO: avoid code replication (switch statement is also in displayTrafficRers)
+        switch (currentMetro.getSlug()) {
+            case Constants.Slug.NORMAL_TRAV:
+                holder.mImageWorks.setVisibility(View.VISIBLE);
+                break;
+            case Constants.Slug.ALERTE:
+                holder.mTrafficFrame.setBackground(
+                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.alert_shape, null)
+                );
+                break;
+            default:
+                break;
+        }
 
         switch (currentMetro.getLine()) {
             case "1":
@@ -206,8 +265,20 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
 
     private void displayTrafficRers(TrafficViewHolder holder, int position) {
         ResponseTraffic.Result.Rer currentRer = mResponseTraffic.getResult().getRers().get(position);
-        holder.mStateTraffic.setText(currentRer.getTitle());
+        // holder.mStateTraffic.setText(currentRer.getTitle());
 
+        switch (currentRer.getSlug()) {
+            case Constants.Slug.NORMAL_TRAV:
+                holder.mImageWorks.setVisibility(View.VISIBLE);
+                break;
+            case Constants.Slug.ALERTE:
+                holder.mTrafficFrame.setBackground(
+                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.alert_shape, null)
+                );
+                break;
+            default:
+                break;
+        }
 
         switch (currentRer.getLine()) {
             case "A":
@@ -242,8 +313,19 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
 
     private void displayTrafficTramways(TrafficViewHolder holder, int position) {
         ResponseTraffic.Result.Tramway currentTram = mResponseTraffic.getResult().getTramways().get(position);
-        holder.mStateTraffic.setText(currentTram.getTitle());
-
+        // holder.mStateTraffic.setText(currentTram.getTitle());
+        switch (currentTram.getSlug()) {
+            case Constants.Slug.NORMAL_TRAV:
+                holder.mImageWorks.setVisibility(View.VISIBLE);
+                break;
+            case Constants.Slug.ALERTE:
+                holder.mTrafficFrame.setBackground(
+                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.alert_shape, null)
+                );
+                break;
+            default:
+                break;
+        }
         switch (currentTram.getLine()) {
             case "1":
                 holder.mIconTraffic.setImageDrawable(

@@ -1,12 +1,13 @@
 package fr.altoine.instatrain;
 
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,7 +38,8 @@ import retrofit2.Response;
 
 public class TrafficFragment extends Fragment implements
         RetryActionListener,
-        Callback<ResponseTraffic> {
+        Callback<ResponseTraffic>,
+        TrafficAdapter.TrafficAdapterOnClickHandler {
 
 
 
@@ -72,7 +74,24 @@ public class TrafficFragment extends Fragment implements
 
 
 
-    // Callback listener --------------------------------------------------------------------------
+    // Listeners --------------------------------------------------------------------------
+
+
+    // TODO: use string resources instead of string literal
+    @Override
+    public void onClick(ResponseTraffic.Result.Transports transport) {
+        new AlertDialog.Builder(getActivity())
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                })
+                .setTitle(transport.getTitle() + " - ligne " + transport.getLine())
+                .setMessage(transport.getMessage())
+                // Set other dialog properties
+                .create()
+                .show();
+    }
 
     @Override
     public void onFailure(Exception ex) {
@@ -98,9 +117,16 @@ public class TrafficFragment extends Fragment implements
             if (mTrafficAdapter != null) {
                 mTrafficAdapter.reloadResponse(result);
             } else {
-                mTrafficAdapter = new TrafficAdapter(getActivity(), result);
+                // TODO: arbitrary chosen 5 columns, maybe change it according to the screen size
+                GridLayoutManager layoutManager =
+                        new GridLayoutManager(getActivity(), 5, GridLayoutManager.VERTICAL, false);
+
+                mTrafficAdapter = new TrafficAdapter(getActivity(), result, this);
                 mTrafficAdapter.shouldShowFooters(false);
                 mTrafficAdapter.shouldShowHeadersForEmptySections(false);
+                mTrafficAdapter.setLayoutManager(layoutManager);
+
+                mListTraffic.setLayoutManager(layoutManager);
                 mListTraffic.setAdapter(mTrafficAdapter);
             }
         }
@@ -153,12 +179,6 @@ public class TrafficFragment extends Fragment implements
 
         // Load recycle view but do not fill it with data as long as the network call is not finished
         mListTraffic = (RecyclerView) getActivity().findViewById(R.id.rv_traffic);
-        LinearLayoutManager layoutManager =
-                new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-        /* GridLayoutManager layoutManager =
-                new GridLayoutManager(getActivity(), 5, GridLayoutManager.VERTICAL, false); */
-        mListTraffic.setLayoutManager(layoutManager);
-
         loadTraffic();
     }
 

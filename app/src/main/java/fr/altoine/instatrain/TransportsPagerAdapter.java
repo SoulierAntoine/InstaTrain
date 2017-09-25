@@ -4,6 +4,7 @@ package fr.altoine.instatrain;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.support.v13.app.FragmentPagerAdapter;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,8 @@ public class TransportsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
+
+        Log.v("ASOU", String.valueOf(getItemId(position)));
         return mPagesList.get(position);
     }
 

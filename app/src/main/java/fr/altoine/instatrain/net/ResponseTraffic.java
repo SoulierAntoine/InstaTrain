@@ -2,6 +2,7 @@ package fr.altoine.instatrain.net;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,6 +31,27 @@ public class ResponseTraffic {
         @SerializedName("tramways")
         private List<Tramway> tramways;
 
+        public List<Transports> getTransports() {
+            List<Transports> transports = new ArrayList<>();
+            transports.addAll(getMetros());
+            transports.addAll(getRers());
+            transports.addAll(getTramways());
+            return transports;
+        }
+
+        public String getType(int position) {
+            int rersListSize = rers.size();
+            int metrosListSize = metros.size();
+            int tramwaysListSize = tramways.size();
+
+            if (position > (metrosListSize - 1) && position < ((rersListSize + metrosListSize + tramwaysListSize - 1) - tramwaysListSize))
+                return "rers";
+            else if (position > rers.size())
+                return "tramways";
+            else
+                return "metros";
+        }
+
         public List<Metro> getMetros() {
             return metros;
         }
@@ -42,7 +64,7 @@ public class ResponseTraffic {
             return tramways;
         }
 
-        class Transports {
+        public class Transports {
             @SerializedName("line")
             private String line;
 

@@ -10,4 +10,11 @@ public class Constants {
     public class Loader {
         public static final int ID_TRAFFIC_LOADER = 331;
     }
+
+    public class Slug {
+        public static final String NORMAL = "normal";
+        public static final String NORMAL_TRAV = "normal_trav";
+        public static final String ALERTE = "alerte";
+        public static final String CRITIQUE = "critique";
+    }
 }

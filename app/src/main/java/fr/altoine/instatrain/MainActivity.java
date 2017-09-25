@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements
     // Miscellaneous ------------------------------------------------------------------------------
 
     private RetryActionListener retryActionListener;
+    private int mCurrentTab;
 
 
     // Activity lifecycle -------------------------------------------------------------------------
@@ -82,6 +83,9 @@ public class MainActivity extends AppCompatActivity implements
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                if (mCurrentTab > 0) {
+
+                }
             }
         });
 
@@ -90,8 +94,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
 //                hideNoConnection();
-
-                Log.v(TAG, String.valueOf(tab.getPosition()));
+                mCurrentTab = tab.getPosition();
 
                 if (tab.getPosition() == 0) {
                     fab.hide();
