@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,6 +21,8 @@ import android.widget.TextView;
 import com.afollestad.sectionedrecyclerview.ItemCoord;
 import com.afollestad.sectionedrecyclerview.SectionedRecyclerViewAdapter;
 import com.afollestad.sectionedrecyclerview.SectionedViewHolder;
+
+import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -33,6 +36,7 @@ import fr.altoine.instatrain.utils.Constants;
 public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.TrafficViewHolder> {
     private Context mContext;
     private ResponseTraffic mResponseTraffic;
+    private final TrafficAdapterOnClickHandler mClickHandler;
 
     public TrafficAdapter(Context context, ResponseTraffic responseTraffic, TrafficAdapterOnClickHandler clickHandler) {
         mContext = context;
@@ -40,12 +44,11 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
         mClickHandler = clickHandler;
     }
 
-    private final TrafficAdapterOnClickHandler mClickHandler;
-
     public interface TrafficAdapterOnClickHandler {
         void onClick(ResponseTraffic.Result.Transports transport);
     }
 
+    // TODO: avoid using notifyDataSetChanged() : compare the current response and the previous and simply apply necessary changes
     public void reloadResponse(ResponseTraffic responseTraffic) {
         mResponseTraffic = responseTraffic;
         notifyDataSetChanged();
@@ -54,18 +57,20 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
     @Override
     public TrafficViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         int layoutRes;
+
         switch (viewType) {
             case VIEW_TYPE_HEADER:
                 layoutRes = R.layout.traffic_list_header;
                 break;
-            default:
+            case VIEW_TYPE_ITEM:
                 layoutRes = R.layout.traffic_list_item;
                 break;
+            default:
+                throw new IllegalArgumentException("Invalid view type, value of " + viewType);
         }
 
-        LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        View item = layoutInflater.inflate(layoutRes, parent, false);
-        return new TrafficViewHolder(item);
+        View view = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
+        return new TrafficViewHolder(view);
     }
 
     @Override
@@ -75,12 +80,18 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
 
     @Override
     public int getItemCount(int section) {
-        if (section == 0)
-            return mResponseTraffic.getResult().getMetros().size();
-        if (section == 1)
-            return mResponseTraffic.getResult().getRers().size();
-        if (section == 2)
-            return mResponseTraffic.getResult().getTramways().size();
+        if (section == Constants.Section.METROS) {
+            int metrosListSize = mResponseTraffic.getResult().getMetros().size();
+            return (metrosListSize != 0) ? metrosListSize : 0;
+        }
+        if (section == Constants.Section.RERS) {
+            int rersListSize = mResponseTraffic.getResult().getRers().size();
+            return (rersListSize!= 0) ? rersListSize : 0;
+        }
+        if (section == Constants.Section.TRAMWAYS) {
+            int tramwaysListSize = mResponseTraffic.getResult().getTramways().size();
+            return (tramwaysListSize != 0) ? tramwaysListSize : 0;
+        }
 
         return 0;
     }
@@ -88,36 +99,66 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
     @Override
     public void onBindHeaderViewHolder(TrafficViewHolder holder, int section, boolean expanded) {
         // TODO: change for strings from resource
-        if (section == 0)
+        if (section == Constants.Section.METROS)
             holder.mSectionTitle.setText("Metros");
-        if (section == 1)
+        if (section == Constants.Section.RERS)
             holder.mSectionTitle.setText("Rers");
-        if (section == 2)
+        if (section == Constants.Section.TRAMWAYS)
             holder.mSectionTitle.setText("Tramways");
     }
 
     @Override
     public void onBindFooterViewHolder(TrafficViewHolder holder, int section) {}
 
+    /*
+     * Only enters here for non-header views.
+     */
     @Override
     public void onBindViewHolder(TrafficViewHolder holder, int section, int relativePosition, int absolutePosition) {
-        if (mResponseTraffic.getResult().getMetros().size() > 0 && section == 0) {
-            displayTrafficMetros(holder, relativePosition);
+        // TODO: temporary solution, apparently it'd be more efficient to get the XML that's been inflated rather than use an utility class
+        TrafficView trafficView = new TrafficView(mContext, holder.mIconTraffic, holder.mImageWorks, holder.mTrafficFrame);
+
+        /*
+         * There's two lists : one with all the transports juxtaposed one besides the others, and another with the sections name.
+         * We take the absolution position, subtract the section number, and then subtract 1, which is the section name.
+        */
+        int position = absolutePosition - section - 1;
+        ResponseTraffic.Result.Transports transports = mResponseTraffic.getResult().getTransports().get(position);
+
+
+        switch (transports.getSlug()) {
+            case Constants.Slug.NORMAL_TRAV:
+                trafficView.displayWorkIcon();
+                break;
+            case Constants.Slug.ALERTE:
+                trafficView.displayAlertFrame();
+                break;
+            case Constants.Slug.CRITIQUE:
+                trafficView.displayCritiqueFrame();
+                break;
+            default:
+                break;
         }
 
-        if (mResponseTraffic.getResult().getRers().size() > 0 && section == 1) {
-            displayTrafficRers(holder, relativePosition);
-        }
-        if (mResponseTraffic.getResult().getTramways().size() > 0 && section == 2) {
-            displayTrafficTramways(holder, relativePosition);
-        }
+        if (mResponseTraffic.getResult().getMetros().size() > 0 && section == Constants.Section.METROS)
+            trafficView.setIconLine(mResponseTraffic.getResult().getMetros().get(relativePosition));
+
+        if (mResponseTraffic.getResult().getRers().size() > 0 && section == Constants.Section.RERS)
+            trafficView.setIconLine(mResponseTraffic.getResult().getRers().get(relativePosition));
+
+        if (mResponseTraffic.getResult().getTramways().size() > 0 && section == Constants.Section.TRAMWAYS)
+            trafficView.setIconLine(mResponseTraffic.getResult().getTramways().get(relativePosition));
     }
 
+
+    /**
+     * No need to be static, this inner class will only be used in this adapter.
+     * See: https://stackoverflow.com/a/31302613
+     */
     class TrafficViewHolder extends SectionedViewHolder implements View.OnClickListener {
-        final ImageView mIconTraffic;
-        // final TextView mStateTraffic;
         final TextView mSectionTitle;
         final ImageView mImageWorks;
+        final ImageView mIconTraffic;
         final ImageView mTrafficFrame;
 
         @Override
@@ -130,13 +171,13 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
             int relativePos = position.relativePos();
             if (getAdapterPosition() != RecyclerView.NO_POSITION) {
                 switch (section) {
-                    case 0:
+                    case Constants.Section.METROS:
                         mClickHandler.onClick(mResponseTraffic.getResult().getMetros().get(relativePos));
                         break;
-                    case 1:
+                    case Constants.Section.RERS:
                         mClickHandler.onClick(mResponseTraffic.getResult().getRers().get(relativePos));
                         break;
-                    case 2:
+                    case Constants.Section.TRAMWAYS:
                         mClickHandler.onClick(mResponseTraffic.getResult().getTramways().get(relativePos));
                         break;
                     default:
@@ -147,228 +188,12 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
 
         TrafficViewHolder(View view) {
             super(view);
-            // mStateTraffic = (TextView) view.findViewById(R.id.tv_state);
             mIconTraffic = (ImageView) view.findViewById(R.id.iv_icon);
             mSectionTitle = (TextView) view.findViewById(R.id.tv_title);
             mTrafficFrame = (ImageView) view.findViewById(R.id.iv_frame);
             mImageWorks = (ImageView) view.findViewById(R.id.iv_works);
-            
+
             view.setOnClickListener(this);
-        }
-    }
-
-
-    private void displayTrafficMetros(TrafficViewHolder holder, int position) {
-        ResponseTraffic.Result.Metro currentMetro = mResponseTraffic.getResult().getMetros().get(position);
-        // holder.mStateTraffic.setText(currentMetro.getTitle());
-
-
-        // TODO: avoid code replication (switch statement is also in displayTrafficRers)
-        switch (currentMetro.getSlug()) {
-            case Constants.Slug.NORMAL_TRAV:
-                holder.mImageWorks.setVisibility(View.VISIBLE);
-                break;
-            case Constants.Slug.ALERTE:
-                holder.mTrafficFrame.setBackground(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.alert_shape, null)
-                );
-                break;
-            default:
-                break;
-        }
-
-        switch (currentMetro.getLine()) {
-            case "1":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne1, null)
-                );
-                break;
-            case "2":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne2, null)
-                );
-                break;
-            case "3":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne3, null)
-                );
-                break;
-            case "3B":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne3b, null)
-                );
-                break;
-            case "4":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne4, null)
-                );
-                break;
-            case "5":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne5, null)
-                );
-                break;
-            case "6":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne6, null)
-                );
-                break;
-            case "7":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne7, null)
-                );
-                break;
-            case "7B":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne7b, null)
-                );
-                break;
-            case "8":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne8, null)
-                );
-                break;
-            case "9":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne9, null)
-                );
-                break;
-            case "10":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne10, null)
-                );
-                break;
-            case "11":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne11, null)
-                );
-                break;
-            case "12":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne12, null)
-                );
-                break;
-            case "13":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne13, null)
-                );
-                break;
-            case "14":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_metro_ligne14, null)
-                );
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void displayTrafficRers(TrafficViewHolder holder, int position) {
-        ResponseTraffic.Result.Rer currentRer = mResponseTraffic.getResult().getRers().get(position);
-        // holder.mStateTraffic.setText(currentRer.getTitle());
-
-        switch (currentRer.getSlug()) {
-            case Constants.Slug.NORMAL_TRAV:
-                holder.mImageWorks.setVisibility(View.VISIBLE);
-                break;
-            case Constants.Slug.ALERTE:
-                holder.mTrafficFrame.setBackground(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.alert_shape, null)
-                );
-                break;
-            default:
-                break;
-        }
-
-        switch (currentRer.getLine()) {
-            case "A":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_rer_ligne_a, null)
-                );
-                break;
-            case "B":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_rer_ligne_b, null)
-                );
-                break;
-            case "C":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_rer_ligne_c, null)
-                );
-                break;
-            case "D":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_rer_ligne_d, null)
-                );
-                break;
-            case "E":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_rer_ligne_e, null)
-                );
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void displayTrafficTramways(TrafficViewHolder holder, int position) {
-        ResponseTraffic.Result.Tramway currentTram = mResponseTraffic.getResult().getTramways().get(position);
-        // holder.mStateTraffic.setText(currentTram.getTitle());
-        switch (currentTram.getSlug()) {
-            case Constants.Slug.NORMAL_TRAV:
-                holder.mImageWorks.setVisibility(View.VISIBLE);
-                break;
-            case Constants.Slug.ALERTE:
-                holder.mTrafficFrame.setBackground(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.alert_shape, null)
-                );
-                break;
-            default:
-                break;
-        }
-        switch (currentTram.getLine()) {
-            case "1":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_tram_ligne1, null)
-                );
-                break;
-            case "2":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_tram_ligne2, null)
-                );
-                break;
-            case "3A":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_tram_ligne3a, null)
-                );
-                break;
-            case "3B":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_tram_ligne3b, null)
-                );
-                break;
-            case "5":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_tram_ligne5, null)
-                );
-                break;
-            case "6":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_tram_ligne6, null)
-                );
-                break;
-            case "7":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_tram_ligne7, null)
-                );
-                break;
-            case "8":
-                holder.mIconTraffic.setImageDrawable(
-                        ResourcesCompat.getDrawable(mContext.getResources(), R.drawable.ic_tram_ligne8, null)
-                );
-                break;
-            default:
-                break;
         }
     }
 }

@@ -1,5 +1,7 @@
 package fr.altoine.instatrain.net;
 
+import android.support.annotation.Nullable;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -16,6 +18,9 @@ import java.util.List;
 public class ResponseTraffic {
     @SerializedName("result")
     private Result result;
+
+    @Nullable
+    private String message;
 
     public Result getResult() {
         return result;
@@ -37,19 +42,6 @@ public class ResponseTraffic {
             transports.addAll(getRers());
             transports.addAll(getTramways());
             return transports;
-        }
-
-        public String getType(int position) {
-            int rersListSize = rers.size();
-            int metrosListSize = metros.size();
-            int tramwaysListSize = tramways.size();
-
-            if (position > (metrosListSize - 1) && position < ((rersListSize + metrosListSize + tramwaysListSize - 1) - tramwaysListSize))
-                return "rers";
-            else if (position > rers.size())
-                return "tramways";
-            else
-                return "metros";
         }
 
         public List<Metro> getMetros() {

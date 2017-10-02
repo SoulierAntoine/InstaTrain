@@ -37,7 +37,7 @@ public class TransportsPagerAdapter extends FragmentPagerAdapter {
         return mPagesList.size();
     }
 
-    void addFragment(Fragment fragment, String title) {
+    public void addFragment(Fragment fragment, String title) {
         mPagesList.add(fragment);
         mTitlesList.add(title);
     }

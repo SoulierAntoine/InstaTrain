@@ -6,6 +6,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -104,16 +106,10 @@ public class TrafficFragment extends Fragment implements
      */
     @Override
     public void onSuccess(ResponseTraffic result) {
-        mSwipeRefreshLayout.setRefreshing(false);
-        if (!mSwipeRefreshLayout.isEnabled())
-            mSwipeRefreshLayout.setEnabled(true);
         mLoading.setVisibility(View.GONE);
 
         // Check if the fragment is attached to activity before getting Context from Activity
         if (result != null && isAdded()) {
-            mNoConnectionListener.hideNoConnection();
-            mListTraffic.setVisibility(View.VISIBLE);
-
             if (mTrafficAdapter != null) {
                 mTrafficAdapter.reloadResponse(result);
             } else {
@@ -129,6 +125,18 @@ public class TrafficFragment extends Fragment implements
                 mListTraffic.setLayoutManager(layoutManager);
                 mListTraffic.setAdapter(mTrafficAdapter);
             }
+
+            mSwipeRefreshLayout.setRefreshing(false);
+            if (!mSwipeRefreshLayout.isEnabled())
+                mSwipeRefreshLayout.setEnabled(true);
+
+            mNoConnectionListener.hideNoConnection();
+            mListTraffic.setVisibility(View.VISIBLE);
+            mSwipeRefreshLayout.setVisibility(View.VISIBLE);
+
+            int visibilityList = mListTraffic.getVisibility();
+            int visibilitySwip = mSwipeRefreshLayout.getVisibility();
+            Log.v("foo", "bar");
         }
         else {
             mNoConnectionListener.showNoConnection();
@@ -160,6 +168,10 @@ public class TrafficFragment extends Fragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_traffic, container, false);
         mLoading = (ProgressBar) rootView.findViewById(R.id.pb_traffic_loading);
+
+        // Load recycle view but do not attach an adapter as long as the network call is not finished
+        mListTraffic = (RecyclerView) rootView.findViewById(R.id.rv_traffic);
+
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.srl_swipe_container);
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -167,18 +179,15 @@ public class TrafficFragment extends Fragment implements
                 loadTraffic();
             }
         });
+
         return rootView;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         // TODO: change Interface: we're getting the whole traffic here, not just the metro
         mMetroService = RetrofitFactory.getApi(IMetroService.class);
-
-        // Load recycle view but do not fill it with data as long as the network call is not finished
-        mListTraffic = (RecyclerView) getActivity().findViewById(R.id.rv_traffic);
         loadTraffic();
     }
 
@@ -203,7 +212,7 @@ public class TrafficFragment extends Fragment implements
 
     private void showLoading() {
         mNoConnectionListener.hideNoConnection();
-        mListTraffic.setVisibility(View.INVISIBLE);
+        mSwipeRefreshLayout.setVisibility(View.INVISIBLE);
         mSwipeRefreshLayout.setEnabled(false);
         mLoading.setVisibility(View.VISIBLE);
     }
@@ -214,7 +223,6 @@ public class TrafficFragment extends Fragment implements
         TrafficLoader(Context context, IMetroService service) {
             super(context, service);
         }
-
 
         /**
          * Called by the abstract class {@link RetrofitLoader} and perform Retrofit request.

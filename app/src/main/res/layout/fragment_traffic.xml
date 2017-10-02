@@ -13,6 +13,11 @@
         android:paddingTop="@dimen/activity_vertical_margin"
     -->
 
+    <TextView
+        android:id="@+id/section_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <ProgressBar
         android:id="@+id/pb_traffic_loading"
         android:layout_width="@dimen/pb_size"

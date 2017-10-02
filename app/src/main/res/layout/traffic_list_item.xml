@@ -5,6 +5,7 @@
     android:orientation="horizontal"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:id="@+id/cl_item_layout"
     android:paddingBottom="@dimen/list_item_padding_vertical"
     android:paddingTop="@dimen/list_item_padding_vertical">
     <!-- android:paddingLeft="@dimen/list_item_padding_horizontal"
@@ -21,6 +22,7 @@
         android:padding="3dp"/>
         <!-- android:background="@drawable/alert_shape"/> -->
 
+    <!-- TODO: replace by values from a dimension file -->
     <ImageView
         android:id="@+id/iv_icon"
         android:layout_width="30dp"
@@ -31,7 +33,6 @@
         app:layout_constraintLeft_toLeftOf="@+id/iv_frame"
         app:layout_constraintRight_toRightOf="@+id/iv_frame" />
 
-    <!-- TODO: replace by values from a dimension file -->
     <ImageView
         android:id="@+id/iv_works"
         android:layout_width="23dp"

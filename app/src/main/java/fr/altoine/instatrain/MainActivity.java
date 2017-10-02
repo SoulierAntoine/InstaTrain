@@ -114,12 +114,16 @@ public class MainActivity extends AppCompatActivity implements
     private TransportsPagerAdapter setUpPagerAdapter() {
         TransportsPagerAdapter adapter = new TransportsPagerAdapter(getFragmentManager());
         TrafficFragment trafficFragment = new TrafficFragment();
+//        TrafficFragment trafficFragment = TrafficFragment.newInstance(0);
         setRetryActionListener(trafficFragment);
-        adapter.addFragment(trafficFragment, "Traffic");
 
-        adapter.addFragment(new TransportsFragment(), "Metro");
-        adapter.addFragment(new TransportsFragment(), "Rer");
-        adapter.addFragment(new TransportsFragment(), "Tramway");
+        adapter.addFragment(trafficFragment, "Traffic");
+        adapter.addFragment(TransportsFragment.newInstance(1), "Metro");
+        adapter.addFragment(TransportsFragment.newInstance(2), "Rer");
+        adapter.addFragment(TransportsFragment.newInstance(3), "Tramway");
+//        adapter.addFragment(new TransportsFragment(), "Metro");
+//        adapter.addFragment(new TransportsFragment(), "Rer");
+//        adapter.addFragment(new TransportsFragment(), "Tramway");
 
         return adapter;
     }
