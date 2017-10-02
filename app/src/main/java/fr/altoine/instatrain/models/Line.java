@@ -1,6 +1,7 @@
 package fr.altoine.instatrain.models;
 
 /**
+<<<<<<< HEAD
  * Line - InstaTrain
  * Created by Antoine on 01/10/2017.
  */

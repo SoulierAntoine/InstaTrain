@@ -16,4 +16,5 @@ public class Schedule {
     public Station getmDestination() {
         return mDestination;
     }
+
 }

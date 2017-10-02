@@ -1,5 +1,6 @@
 package fr.altoine.instatrain.models;
 
+
 /**
  * Traffic - InstaTrain
  * Created by Antoine on 30/09/2017.

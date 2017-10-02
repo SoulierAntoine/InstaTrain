@@ -5,6 +5,7 @@ import android.support.constraint.ConstraintLayout;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
+
 import fr.altoine.instatrain.net.ResponseTraffic;
 
 /**
@@ -106,7 +107,7 @@ public final class TrafficView extends ConstraintLayout {
         } else if (transports instanceof ResponseTraffic.Result.Rer) {
             switch (transports.getLine()) {
                 case "A":
-                     mIconTraffic.setImageResource(R.drawable.ic_rer_ligne_a);
+                    mIconTraffic.setImageResource(R.drawable.ic_rer_ligne_a);
                     break;
                 case "B":
                     mIconTraffic.setImageResource(R.drawable.ic_rer_ligne_b);
@@ -124,34 +125,34 @@ public final class TrafficView extends ConstraintLayout {
                     break;
             }
         } else if (transports instanceof ResponseTraffic.Result.Tramway) {
-                switch (transports.getLine()) {
-                    case "1":
-                        mIconTraffic.setImageResource(R.drawable.ic_tram_ligne1);
-                        break;
-                    case "2":
-                        mIconTraffic.setImageResource(R.drawable.ic_tram_ligne2);
-                        break;
-                    case "3A":
-                        mIconTraffic.setImageResource(R.drawable.ic_tram_ligne3a);
-                        break;
-                    case "3B":
-                        mIconTraffic.setImageResource(R.drawable.ic_tram_ligne3b);
-                        break;
-                    case "5":
-                        mIconTraffic.setImageResource(R.drawable.ic_tram_ligne5);
-                        break;
-                    case "6":
-                        mIconTraffic.setImageResource(R.drawable.ic_tram_ligne6);
-                        break;
-                    case "7":
-                        mIconTraffic.setImageResource(R.drawable.ic_tram_ligne7);
-                        break;
-                    case "8":
-                        mIconTraffic.setImageResource(R.drawable.ic_tram_ligne8);
-                        break;
-                    default:
-                        break;
-                }
+            switch (transports.getLine()) {
+                case "1":
+                    mIconTraffic.setImageResource(R.drawable.ic_tram_ligne1);
+                    break;
+                case "2":
+                    mIconTraffic.setImageResource(R.drawable.ic_tram_ligne2);
+                    break;
+                case "3A":
+                    mIconTraffic.setImageResource(R.drawable.ic_tram_ligne3a);
+                    break;
+                case "3B":
+                    mIconTraffic.setImageResource(R.drawable.ic_tram_ligne3b);
+                    break;
+                case "5":
+                    mIconTraffic.setImageResource(R.drawable.ic_tram_ligne5);
+                    break;
+                case "6":
+                    mIconTraffic.setImageResource(R.drawable.ic_tram_ligne6);
+                    break;
+                case "7":
+                    mIconTraffic.setImageResource(R.drawable.ic_tram_ligne7);
+                    break;
+                case "8":
+                    mIconTraffic.setImageResource(R.drawable.ic_tram_ligne8);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
