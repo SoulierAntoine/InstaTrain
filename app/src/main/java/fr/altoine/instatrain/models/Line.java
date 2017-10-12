@@ -1,30 +1,32 @@
 package fr.altoine.instatrain.models;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
-<<<<<<< HEAD
  * Line - InstaTrain
  * Created by Antoine on 01/10/2017.
  */
 
 public class Line {
+    @SerializedName("code")
     private String mCode;
+    public String getCode() { return mCode; }
+
+    @SerializedName("name")
     private String mName;
+    public String getName() { return mName; }
+
+    @SerializedName("directions")
     private String mDirections;
-    private int mId;
+    public String getDirections() { return mDirections; }
 
-    public String getCode() {
-        return mCode;
-    }
+    @SerializedName("id")
+    private String mId;
+    public String getId() { return mId; }
 
-    public String getName() {
-        return mName;
-    }
+    public class Metro {}
 
-    public String getDirections() {
-        return mDirections;
-    }
+    public class Rer {}
 
-    public int getId() {
-        return mId;
-    }
+    public class Tramway {}
 }

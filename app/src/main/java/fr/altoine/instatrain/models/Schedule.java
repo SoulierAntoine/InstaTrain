@@ -1,20 +1,22 @@
 package fr.altoine.instatrain.models;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Schedule - InstaTrain
  * Created by Antoine on 02/10/2017.
  */
 
 public class Schedule {
+    @SerializedName("message")
     private String mMessage;
-    private Station mDestination;
-
-    public String getmMessage() {
+    public String getMessage() {
         return mMessage;
     }
 
-    public Station getmDestination() {
+    @SerializedName("destination")
+    private Station mDestination;
+    public Station getDestination() {
         return mDestination;
     }
-
 }

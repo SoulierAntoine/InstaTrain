@@ -1,8 +1,13 @@
 package fr.altoine.instatrain.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.altoine.instatrain.loader.Response;
+import fr.altoine.instatrain.net.ResponseApi;
 import fr.altoine.instatrain.net.ResponseTraffic;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -21,6 +26,7 @@ public class RetrofitFactory {
         mRetrofit = getInstance();
     }
 
+
     /**
      * Use singleton pattern to get Retrofit instances, so that it can be shared application wise.
      * See: https://stackoverflow.com/a/21250503
@@ -29,13 +35,29 @@ public class RetrofitFactory {
     private static Retrofit getInstance() {
         if (mRetrofit == null) {
             mRetrofit = new Retrofit.Builder()
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(buildGsonConverterFactory())
                     .baseUrl(Constants.API_URL)
                     .build();
         }
 
         return mRetrofit;
     }
+
+
+    /**
+     * Used for readability purpose.
+     * @return an instance of GsonConverterFactory with custom type adapters.
+     */
+    private static GsonConverterFactory buildGsonConverterFactory() {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+
+        // Adding custom deserializers
+        gsonBuilder.registerTypeAdapter(ResponseApi.Result.class, new RatpJsonDeserializer());
+
+        Gson gson = gsonBuilder.create();
+        return GsonConverterFactory.create(gson);
+    }
+
 
     /**
      * Get Retrofit API Instances (such as {@link ResponseTraffic}.

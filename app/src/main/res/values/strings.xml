@@ -15,4 +15,25 @@
     <string name="title_activity_test">TestActivity</string>
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
+
+    <!-- Form schedule -->
+    <string name="next_transport">Next %1$s</string>
+    <string name="line">Line</string>
+    <string name="station">Station</string>
+    <string name="destination">Destination</string>
+    <string name="choose_line">Choose a line</string>
+    <string name="choose_station">Choose a station</string>
+    <string name="choose_destination">Choose a destination</string>
+
+    <!-- TMP -->
+    <string name="signalStrength">Signal strength</string>
+    <string name="excellent">Excellent</string>
+    <string name="ssid">SSID</string>
+    <string name="ssidLit">Material Dialogs</string>
+    <string name="security">Security</string>
+    <string name="securityType">802.1x EAP</string>
+    <string name="password">Password</string>
+    <string name="showPassword">Show password</string>
+    <string name="googleWifi">Google Wifi</string>
+    <string name="connect">Connect</string>
 </resources>

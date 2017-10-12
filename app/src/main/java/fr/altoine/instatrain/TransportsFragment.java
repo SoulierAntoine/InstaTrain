@@ -14,7 +14,7 @@ import android.widget.TextView;
  */
 
 public class TransportsFragment extends Fragment {
-    private static final String ARG_PAGE = "page";
+    private static final String ARG_PAGE = "title";
     private int mPageNumber;
 
     public static TransportsFragment newInstance(int pageNumber) {
@@ -33,6 +33,7 @@ public class TransportsFragment extends Fragment {
         if (getArguments() != null)
             mPageNumber = getArguments().getInt(ARG_PAGE);
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

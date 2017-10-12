@@ -30,4 +30,8 @@
     <!-- List padding -->
     <dimen name="list_item_padding_horizontal">16dp</dimen>
     <dimen name="list_item_padding_vertical">12dp</dimen>
+
+    <!-- TMP -->
+    <dimen name="customTitle">14sp</dimen>
+    <dimen name="customEntry">18sp</dimen>
 </resources>

@@ -19,7 +19,7 @@ public abstract class RetrofitLoader<R, S> extends AsyncTaskLoader<Response<R>> 
 
     /**
      * Called on a worker thread to perform the actual load.
-     * Uses the call() method implemented by legacy classes.
+     * Uses the call() method implemented by inherited classes.
      * @return {@link Response<R>}.
      */
     @Override

@@ -1,14 +1,24 @@
 apply plugin: 'com.android.application'
 
+ext {
+    minSdk             = 19
+    compileSdk         = 26
+    buildTools         = '26.0.2'
+    publishVersion     = '1.0'
+    publishVersionCode = 1
+    supportLibVersion  = '26.+'
+    retrofitVersion    = '2.3.0'
+}
+
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion compileSdk
+    buildToolsVersion buildTools
     defaultConfig {
         applicationId "fr.altoine.instatrain"
-        minSdkVersion 19
-        targetSdkVersion 25
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion minSdk
+        targetSdkVersion compileSdk
+        versionCode publishVersionCode
+        versionName publishVersion
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -19,26 +29,24 @@ android {
     }
 }
 
-ext {
-    supportLibraryVersion = '25.3.1'
-}
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile "com.android.support:support-v13:$supportLibraryVersion"
-    compile "com.android.support:appcompat-v7:$supportLibraryVersion"
-    compile "com.android.support:design:$supportLibraryVersion"
-    compile "com.android.support:support-v4:$supportLibraryVersion"
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile "com.android.support:support-v13:$supportLibVersion"
+    compile "com.android.support:appcompat-v7:$supportLibVersion"
+    compile "com.android.support:design:$supportLibVersion"
+    compile "com.android.support:support-v4:$supportLibVersion"
 
-    compile 'com.afollestad:sectioned-recyclerview:0.5.0'
+    compile "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    compile "com.squareup.retrofit2:converter-gson:$retrofitVersion"
 
-    compile 'com.squareup.retrofit2:retrofit:2.3.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile "com.android.support.constraint:constraint-layout:1.0.2"
 
-    testCompile 'junit:junit:4.12'
+    compile "com.afollestad:sectioned-recyclerview:0.5.0"
+    compile "com.afollestad.material-dialogs:core:0.9.4.3"
+
+    testCompile "junit:junit:4.12"
 }

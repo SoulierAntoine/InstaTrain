@@ -1,20 +1,10 @@
-package fr.altoine.instatrain;
+package fr.altoine.instatrain.adapters;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.support.constraint.ConstraintLayout;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,10 +12,8 @@ import com.afollestad.sectionedrecyclerview.ItemCoord;
 import com.afollestad.sectionedrecyclerview.SectionedRecyclerViewAdapter;
 import com.afollestad.sectionedrecyclerview.SectionedViewHolder;
 
-import org.w3c.dom.Text;
-
-import java.util.List;
-
+import fr.altoine.instatrain.R;
+import fr.altoine.instatrain.TrafficView;
 import fr.altoine.instatrain.net.ResponseTraffic;
 import fr.altoine.instatrain.utils.Constants;
 

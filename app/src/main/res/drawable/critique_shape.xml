@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<<<<<<< HEAD
 <shape
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle"   >
@@ -14,8 +13,3 @@
     </corners>
 
 </shape>
-=======
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-
-</selector>
->>>>>>> 2018b00ec000696ab1f9f6d1d91038213f929864

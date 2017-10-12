@@ -5,7 +5,6 @@ import android.support.constraint.ConstraintLayout;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
-
 import fr.altoine.instatrain.net.ResponseTraffic;
 
 /**
