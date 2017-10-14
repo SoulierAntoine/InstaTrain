@@ -13,17 +13,4 @@ public class Destination extends Station {
     public Ways getWay() {
         return mWay;
     }
-
-    private enum Ways {
-        A("A"),
-        R("R");
-
-        private String mLabel;
-        Ways(String label) { mLabel = label; }
-
-        @Override
-        public String toString() {
-            return mLabel;
-        }
-    }
 }

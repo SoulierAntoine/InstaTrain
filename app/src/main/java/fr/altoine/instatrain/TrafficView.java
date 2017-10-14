@@ -5,7 +5,7 @@ import android.support.constraint.ConstraintLayout;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
-import fr.altoine.instatrain.net.ResponseTraffic;
+import fr.altoine.instatrain.models.Traffic;
 
 /**
  * TrafficIconView - InstaTrain
@@ -49,9 +49,9 @@ public final class TrafficView extends ConstraintLayout {
         mImageWorks.setVisibility(VISIBLE);
     }
 
-    public void setIconLine(ResponseTraffic.Result.Transports transports) {
-        if (transports instanceof ResponseTraffic.Result.Metro) {
-            switch (transports.getLine()) {
+    public void setIconLine(Traffic traffic) {
+        if (traffic instanceof Traffic.MetroTraffic) {
+            switch (traffic.getLine()) {
                 case "1":
                     mIconTraffic.setImageResource(R.drawable.ic_metro_ligne1);
                     break;
@@ -103,8 +103,8 @@ public final class TrafficView extends ConstraintLayout {
                 default:
                     break;
             }
-        } else if (transports instanceof ResponseTraffic.Result.Rer) {
-            switch (transports.getLine()) {
+        } else if (traffic instanceof Traffic.RerTraffic) {
+            switch (traffic.getLine()) {
                 case "A":
                     mIconTraffic.setImageResource(R.drawable.ic_rer_ligne_a);
                     break;
@@ -123,8 +123,8 @@ public final class TrafficView extends ConstraintLayout {
                 default:
                     break;
             }
-        } else if (transports instanceof ResponseTraffic.Result.Tramway) {
-            switch (transports.getLine()) {
+        } else if (traffic instanceof Traffic.TramwayTraffic) {
+            switch (traffic.getLine()) {
                 case "1":
                     mIconTraffic.setImageResource(R.drawable.ic_tram_ligne1);
                     break;

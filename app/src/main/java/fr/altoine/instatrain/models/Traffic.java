@@ -3,6 +3,9 @@ package fr.altoine.instatrain.models;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Traffic - InstaTrain
  * Created by Antoine on 30/09/2017.
@@ -10,20 +13,18 @@ import com.google.gson.annotations.SerializedName;
 
 public class Traffic {
     @SerializedName("line")
-    private Line mLine;
-    public String getTitle() {
-        return mTitle;
-    }
+    private String mLine;
+    public String getLine() { return mLine; }
 
     @SerializedName("slug")
-    private Slug mSlug;
-    public Slug getSlug() {
-        return mSlug;
-    }
+    private String mSlug;
+    public String getSlug() { return mSlug; }
 
     @SerializedName("title")
     private String mTitle;
-    public Line getLine() { return mLine; }
+    public String getTitle() {
+        return mTitle;
+    }
 
     @SerializedName("message")
     private String mMessage;
@@ -31,19 +32,38 @@ public class Traffic {
         return mMessage;
     }
 
+    public List<Traffic> getAllTraffic() {
+        List <Traffic> traffics = new ArrayList<>();
+        if (mMetroTraffics != null && mMetroTraffics.size() > 0)
+            traffics.addAll(mMetroTraffics);
 
-    private enum Slug {
-        NORMAL("normal"),
-        NORMAL_TRAV("normal_trav"),
-        ALERTE("alerte"),
-        CRITIQUE("critique");
+        if (mRerTraffics != null && mRerTraffics.size() > 0)
+            traffics.addAll(mRerTraffics);
 
-        private String mLabel;
-        Slug(String label) { mLabel = label; }
+        if (mTramwayTraffics != null && mTramwayTraffics.size() > 0)
+            traffics.addAll(mTramwayTraffics);
 
-        @Override
-        public String toString() {
-            return mLabel;
-        }
+        return traffics;
     }
+
+
+    public class MetroTraffic extends Traffic {}
+
+    private List<MetroTraffic> mMetroTraffics;
+    public List<MetroTraffic> getMetroTraffics() { return mMetroTraffics; }
+    public void setMetroTraffics(List<MetroTraffic> metroTraffics) { mMetroTraffics = metroTraffics; }
+
+
+    public class RerTraffic extends Traffic {}
+
+    private List<RerTraffic> mRerTraffics;
+    public List<RerTraffic> getRerTraffics() { return mRerTraffics; }
+    public void setRerTraffics(List<RerTraffic> rerTraffics) { mRerTraffics = rerTraffics; }
+
+
+    public class TramwayTraffic extends Traffic {}
+
+    private List<TramwayTraffic> mTramwayTraffics;
+    public List<TramwayTraffic> getTramwayTraffics() { return mTramwayTraffics; }
+    public void setTramwayTraffics(List<TramwayTraffic> tramwayTraffics) { mTramwayTraffics = tramwayTraffics; }
 }

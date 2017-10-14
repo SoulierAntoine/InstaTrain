@@ -15,8 +15,6 @@ public class Schedule {
     }
 
     @SerializedName("destination")
-    private Station mDestination;
-    public Station getDestination() {
-        return mDestination;
-    }
+    private String mDestination;
+    public String getDestination() { return mDestination; }
 }

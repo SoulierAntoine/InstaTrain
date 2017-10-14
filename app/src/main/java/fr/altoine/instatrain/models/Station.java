@@ -12,7 +12,7 @@ public class Station {
     private String mSlug;
     public String getSlug() { return mSlug; }
 
-    @SerializedName("name")
+    @SerializedName(value = "name", alternate = {"description"})
     private String mName;
     public String getName() {
         return mName;

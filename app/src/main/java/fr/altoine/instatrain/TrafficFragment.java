@@ -25,9 +25,9 @@ import fr.altoine.instatrain.listeners.RetryActionListener;
 import fr.altoine.instatrain.loader.Callback;
 import fr.altoine.instatrain.loader.RetrofitLoader;
 import fr.altoine.instatrain.loader.RetrofitLoaderManager;
-import fr.altoine.instatrain.net.ITrafficService;
+import fr.altoine.instatrain.models.Traffic;
+import fr.altoine.instatrain.net.RatpService;
 import fr.altoine.instatrain.net.ResponseApi;
-import fr.altoine.instatrain.net.ResponseTraffic;
 import fr.altoine.instatrain.utils.Constants;
 import fr.altoine.instatrain.utils.RetrofitFactory;
 import retrofit2.Call;
@@ -42,7 +42,6 @@ import retrofit2.Response;
 public class TrafficFragment extends Fragment implements
         RetryActionListener,
         Callback<ResponseApi>,
-//        Callback<ResponseTraffic>,
         TrafficAdapter.TrafficAdapterOnClickHandler {
 
 
@@ -56,7 +55,7 @@ public class TrafficFragment extends Fragment implements
 
     // Network ------------------------------------------------------------------------------------
 
-    private ITrafficService mTrafficService;
+    private RatpService mTrafficService;
 
 
 
@@ -83,7 +82,7 @@ public class TrafficFragment extends Fragment implements
 
     // TODO: use string resources instead of string literal
     @Override
-    public void onClick(ResponseTraffic.Result.Transports transport) {
+    public void onClick(Traffic transport) {
         new AlertDialog.Builder(getActivity())
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -108,20 +107,19 @@ public class TrafficFragment extends Fragment implements
      */
     @Override
     public void onSuccess(ResponseApi result) {
-//    public void onSuccess(ResponseTraffic result) {
         if (mLoading.getVisibility() == View.VISIBLE)
             mLoading.setVisibility(View.INVISIBLE);
 
         // Check if the fragment is attached to activity before getting Context from Activity
         if (result != null && isAdded()) {
             if (mTrafficAdapter != null) {
-//                mTrafficAdapter.reloadResponse(result);
+                mTrafficAdapter.reloadResponse(result);
             } else {
                 // TODO: arbitrary chosen 5 columns, maybe change it according to the screen size
                 GridLayoutManager layoutManager =
                         new GridLayoutManager(getActivity(), 5, GridLayoutManager.VERTICAL, false);
 
-//                mTrafficAdapter = new TrafficAdapter(getActivity(), result, this);
+                mTrafficAdapter = new TrafficAdapter(getActivity(), result, this);
                 mTrafficAdapter.shouldShowFooters(false);
                 mTrafficAdapter.shouldShowHeadersForEmptySections(false);
                 mTrafficAdapter.setLayoutManager(layoutManager);
@@ -191,7 +189,7 @@ public class TrafficFragment extends Fragment implements
        super.onActivityCreated(savedInstanceState);
         Log.v(TAG, "3");
         // TODO: change Interface: we're getting the whole traffic here, not just the metro
-        mTrafficService = RetrofitFactory.getApi(ITrafficService.class);
+        mTrafficService = RetrofitFactory.getApi(RatpService.class);
         loadTraffic();
     }
 
@@ -227,8 +225,7 @@ public class TrafficFragment extends Fragment implements
             mLoading.setVisibility(View.VISIBLE);
     }
 
-//    private static class TrafficLoader extends RetrofitLoader<ResponseTraffic, ITrafficService> {
-    private static class TrafficLoader extends RetrofitLoader<ResponseApi, ITrafficService> {
+    private static class TrafficLoader extends RetrofitLoader<ResponseApi, RatpService> {
         private final String TAG = TrafficLoader.class.getSimpleName();
 
     /**
@@ -237,12 +234,8 @@ public class TrafficFragment extends Fragment implements
      * @return current traffic.
      */
     @Override
-    public ResponseApi call(ITrafficService service) {
-//    public ResponseTraffic call(ITrafficService service) {
-//        Call<ResponseTraffic> request = service.getTraffic();
-//        Response<ResponseTraffic> response = null;
-
-        Call<ResponseApi> request = service.getTrafficc();
+    public ResponseApi call(RatpService service) {
+        Call<ResponseApi> request = service.getGlobalTraffic();
         Response<ResponseApi> response = null;
         try {
             response = request.execute();
@@ -256,7 +249,7 @@ public class TrafficFragment extends Fragment implements
             return null;
     }
 
-        TrafficLoader(Context context, ITrafficService service) {
+        TrafficLoader(Context context, RatpService service) {
             super(context, service);
         }
     }

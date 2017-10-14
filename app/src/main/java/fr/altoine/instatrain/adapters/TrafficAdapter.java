@@ -14,7 +14,8 @@ import com.afollestad.sectionedrecyclerview.SectionedViewHolder;
 
 import fr.altoine.instatrain.R;
 import fr.altoine.instatrain.TrafficView;
-import fr.altoine.instatrain.net.ResponseTraffic;
+import fr.altoine.instatrain.models.Traffic;
+import fr.altoine.instatrain.net.ResponseApi;
 import fr.altoine.instatrain.utils.Constants;
 
 /**
@@ -23,22 +24,22 @@ import fr.altoine.instatrain.utils.Constants;
  */
 public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.TrafficViewHolder> {
     private Context mContext;
-    private ResponseTraffic mResponseTraffic;
+    private ResponseApi mResponseApi;
     private final TrafficAdapterOnClickHandler mClickHandler;
 
-    public TrafficAdapter(Context context, ResponseTraffic responseTraffic, TrafficAdapterOnClickHandler clickHandler) {
+    public TrafficAdapter(Context context, ResponseApi responseTraffic, TrafficAdapterOnClickHandler clickHandler) {
         mContext = context;
-        mResponseTraffic = responseTraffic;
+        mResponseApi = responseTraffic;
         mClickHandler = clickHandler;
     }
 
     public interface TrafficAdapterOnClickHandler {
-        void onClick(ResponseTraffic.Result.Transports transport);
+        void onClick(Traffic traffic);
     }
 
     // TODO: avoid using notifyDataSetChanged() : compare the current response and the previous and simply apply necessary changes
-    public void reloadResponse(ResponseTraffic responseTraffic) {
-        mResponseTraffic = responseTraffic;
+    public void reloadResponse(ResponseApi responseTraffic) {
+        mResponseApi = responseTraffic;
         notifyDataSetChanged();
     }
 
@@ -68,16 +69,18 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
 
     @Override
     public int getItemCount(int section) {
+        Traffic traffics = mResponseApi.getResult().getTraffics();
+
         if (section == Constants.Section.METROS) {
-            int metrosListSize = mResponseTraffic.getResult().getMetros().size();
+            int metrosListSize = traffics.getMetroTraffics().size();
             return (metrosListSize != 0) ? metrosListSize : 0;
         }
         if (section == Constants.Section.RERS) {
-            int rersListSize = mResponseTraffic.getResult().getRers().size();
+            int rersListSize = traffics.getRerTraffics().size();
             return (rersListSize!= 0) ? rersListSize : 0;
         }
         if (section == Constants.Section.TRAMWAYS) {
-            int tramwaysListSize = mResponseTraffic.getResult().getTramways().size();
+            int tramwaysListSize = traffics.getTramwayTraffics().size();
             return (tramwaysListSize != 0) ? tramwaysListSize : 0;
         }
 
@@ -104,17 +107,17 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
     @Override
     public void onBindViewHolder(TrafficViewHolder holder, int section, int relativePosition, int absolutePosition) {
         // TODO: temporary solution, apparently it'd be more efficient to get the XML that's been inflated rather than use an utility class
-        TrafficView trafficView = new TrafficView(mContext, holder.mIconTraffic, holder.mImageWorks, holder.mTrafficFrame);
+         TrafficView trafficView = new TrafficView(mContext, holder.mIconTraffic, holder.mImageWorks, holder.mTrafficFrame);
 
         /*
          * There's two lists : one with all the transports juxtaposed one besides the others, and another with the sections name.
          * We take the absolution position, subtract the section number, and then subtract 1, which is the section name.
         */
         int position = absolutePosition - section - 1;
-        ResponseTraffic.Result.Transports transports = mResponseTraffic.getResult().getTransports().get(position);
+        Traffic resultTraffic = mResponseApi.getResult().getTraffics();
+        Traffic currentTraffics = resultTraffic.getAllTraffic().get(position);
 
-
-        switch (transports.getSlug()) {
+        switch (currentTraffics.getSlug()) {
             case Constants.Slug.NORMAL_TRAV:
                 trafficView.displayWorkIcon();
                 break;
@@ -128,14 +131,14 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
                 break;
         }
 
-        if (mResponseTraffic.getResult().getMetros().size() > 0 && section == Constants.Section.METROS)
-            trafficView.setIconLine(mResponseTraffic.getResult().getMetros().get(relativePosition));
+        if (resultTraffic.getMetroTraffics().size() > 0 && section == Constants.Section.METROS)
+            trafficView.setIconLine(resultTraffic.getMetroTraffics().get(relativePosition));
 
-        if (mResponseTraffic.getResult().getRers().size() > 0 && section == Constants.Section.RERS)
-            trafficView.setIconLine(mResponseTraffic.getResult().getRers().get(relativePosition));
+        if (resultTraffic.getRerTraffics().size() > 0 && section == Constants.Section.RERS)
+            trafficView.setIconLine(resultTraffic.getRerTraffics().get(relativePosition));
 
-        if (mResponseTraffic.getResult().getTramways().size() > 0 && section == Constants.Section.TRAMWAYS)
-            trafficView.setIconLine(mResponseTraffic.getResult().getTramways().get(relativePosition));
+        if (resultTraffic.getTramwayTraffics().size() > 0 && section == Constants.Section.TRAMWAYS)
+            trafficView.setIconLine(resultTraffic.getTramwayTraffics().get(relativePosition));
     }
 
 
@@ -157,16 +160,17 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
             ItemCoord position = getRelativePosition();
             int section = position.section();
             int relativePos = position.relativePos();
+            Traffic traffics = mResponseApi.getResult().getTraffics();
             if (getAdapterPosition() != RecyclerView.NO_POSITION) {
                 switch (section) {
                     case Constants.Section.METROS:
-                        mClickHandler.onClick(mResponseTraffic.getResult().getMetros().get(relativePos));
+                        mClickHandler.onClick(traffics.getMetroTraffics().get(relativePos));
                         break;
                     case Constants.Section.RERS:
-                        mClickHandler.onClick(mResponseTraffic.getResult().getRers().get(relativePos));
+                        mClickHandler.onClick(traffics.getRerTraffics().get(relativePos));
                         break;
                     case Constants.Section.TRAMWAYS:
-                        mClickHandler.onClick(mResponseTraffic.getResult().getTramways().get(relativePos));
+                        mClickHandler.onClick(traffics.getTramwayTraffics().get(relativePos));
                         break;
                     default:
                         break;
@@ -176,10 +180,10 @@ public class TrafficAdapter extends SectionedRecyclerViewAdapter<TrafficAdapter.
 
         TrafficViewHolder(View view) {
             super(view);
-            mIconTraffic = (ImageView) view.findViewById(R.id.iv_icon);
-            mSectionTitle = (TextView) view.findViewById(R.id.tv_title);
-            mTrafficFrame = (ImageView) view.findViewById(R.id.iv_frame);
-            mImageWorks = (ImageView) view.findViewById(R.id.iv_works);
+            mIconTraffic  = view.findViewById(R.id.iv_icon);
+            mSectionTitle = view.findViewById(R.id.tv_title);
+            mTrafficFrame = view.findViewById(R.id.iv_frame);
+            mImageWorks   = view.findViewById(R.id.iv_works);
 
             view.setOnClickListener(this);
         }
