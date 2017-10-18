@@ -54,16 +54,16 @@ public class ResponseApi {
         public void setLines(Line lines) { mLines = lines; }
 
         @SerializedName("stations")
-        private List<Station> mStation;
-        public List<Station> getStation() { return mStation; }
+        private List<Station> mStations;
+        public List<Station> getStations() { return mStations; }
 
         @SerializedName("destinations")
         private List<Destination> mDestinations;
         public List<Destination> getDestinations() { return mDestinations; }
 
         @SerializedName("schedules")
-        private List<Schedule> mSchedule;
-        public List<Schedule> getSchedule() { return mSchedule; }
+        private List<Schedule> mSchedules;
+        public List<Schedule> getSchedules() { return mSchedules; }
     }
 
 

@@ -8,9 +8,11 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -28,10 +30,23 @@ import fr.altoine.instatrain.adapters.TransportChoiceAdapter;
 import fr.altoine.instatrain.adapters.TransportsPagerAdapter;
 import fr.altoine.instatrain.listeners.NoConnectionListener;
 import fr.altoine.instatrain.listeners.RetryActionListener;
+import fr.altoine.instatrain.loader.Callback;
+import fr.altoine.instatrain.loader.RetrofitLoaderManager;
+import fr.altoine.instatrain.models.Destination;
+import fr.altoine.instatrain.models.Line;
+import fr.altoine.instatrain.models.Station;
+import fr.altoine.instatrain.models.Transport;
+import fr.altoine.instatrain.net.RatpLoader.DestinationLoader;
+import fr.altoine.instatrain.net.RatpLoader.LineLoader;
+import fr.altoine.instatrain.net.RatpLoader.StationLoader;
+import fr.altoine.instatrain.net.RatpService;
+import fr.altoine.instatrain.net.ResponseApi;
+import fr.altoine.instatrain.utils.RetrofitFactory;
 
 
 public class MainActivity extends AppCompatActivity implements
         NoConnectionListener,
+        Callback<ResponseApi>,
         View.OnClickListener {
 
 
@@ -65,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         // mNoConnectionLayout = (FrameLayout) findViewById(R.id.fl_no_connection);
         mNoConnectionImage = (ImageView) findViewById(R.id.iv_no_connection);
         mNoConnectionText = (TextView) findViewById(R.id.tv_no_connection);
@@ -87,26 +101,23 @@ public class MainActivity extends AppCompatActivity implements
 
         // Set up the FloatingActionButton for other than ResponseTraffic tabs
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        fab.setOnClickListener(view -> {
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
-                switch (mCurrentTab) {
-                    case 1:
-                        showCustomView("metro");
-                        break;
-                    case 2:
-                        showCustomView("RER");
-                        break;
-                    case 3:
-                        showCustomView("tramway");
-                        break;
-                    default:
-                        break;
+            switch (mCurrentTab) {
+                case 1:
+                    showCustomView("metro");
+                    break;
+                case 2:
+                    showCustomView("RER");
+                    break;
+                case 3:
+                    showCustomView("tramway");
+                    break;
+                default:
+                    break;
 //                    TrainScheduleDialogFragment f = new TrainScheduleDialogFragment();
 //                    f.show(getFragmentManager(), "dialog");
-                }
             }
         });
 
@@ -242,7 +253,85 @@ public class MainActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-//    private EditText passwordInput;
+
+
+
+
+    public void loadLines(Transport t) {
+        RetrofitLoaderManager.init(
+                getLoaderManager(), 100,
+                new LineLoader(this, RetrofitFactory.getApi(RatpService.class), t),
+                this);
+    }
+
+    public void loadStations(Transport transport, String line) {
+        RetrofitLoaderManager.init(
+                getLoaderManager(), 100,
+                new StationLoader(this, RetrofitFactory.getApi(RatpService.class), transport, line),
+                this);
+    }
+
+    public void loadDestinations(Transport transport, String line) {
+        RetrofitLoaderManager.init(
+                getLoaderManager(), 100,
+                new DestinationLoader(this, RetrofitFactory.getApi(RatpService.class), transport, line),
+                this);
+    }
+
+    private TransportChoiceAdapter<String> mLineChoiceAdapter;
+    private TransportChoiceAdapter<String> mStationChoiceAdapter;
+    private TransportChoiceAdapter<String> mDestinationsChoiceAdapter;
+
+    @Override
+    public void onFailure(Exception ex) {
+        Log.v(TAG, "bar");
+    }
+
+    // TODO: temporary solution, ugly trick
+    @Override
+    public void onSuccess(ResponseApi result) {
+        Log.v(TAG, "foo");
+        mLineChoiceAdapter.setResponseApi(result);
+
+        Line resultLine = result.getResult().getLines();
+        if (resultLine != null) {
+            List<Line> lines = new ArrayList<>();
+            if (resultLine.getMetroLines() != null) {
+                lines = (List<Line>) ((List<?>) resultLine.getMetroLines());
+            } else if (resultLine.getRerLines() != null) {
+                lines = (List<Line>) ((List<?>) resultLine.getMetroLines());
+//                List<Line.RerLine> lines = line.getRerLines();
+            } else if (resultLine.getTramwayLines() != null) {
+                lines = (List<Line>) ((List<?>) resultLine.getMetroLines());
+//                List<Line.TramwayLine> lines = line.getTramwayLines();
+            }
+
+            for (Line line : lines) {
+                mLineChoiceAdapter.add(line.getName() + " - " + line.getDirections());
+            }
+
+            mLineChoiceAdapter.notifyDataSetChanged();
+        }
+
+        List<Station> stations = result.getResult().getStations();
+        if (stations != null) {
+            for (Station station : stations) {
+                mStationChoiceAdapter.add(station.getName());
+            }
+
+            mStationChoiceAdapter.notifyDataSetChanged();
+        }
+
+        List<Destination> destinations = result.getResult().getDestinations();
+        if (destinations != null) {
+            for (Destination destination : destinations) {
+                mDestinationsChoiceAdapter.add(destination.getName());
+            }
+
+            mDestinationsChoiceAdapter.notifyDataSetChanged();
+        }
+    }
+
 
     // TODO: tmp
     public void showCustomView(String transportType) {
@@ -262,12 +351,39 @@ public class MainActivity extends AppCompatActivity implements
                         .build();
 
         View positiveAction = dialog.getActionButton(DialogAction.POSITIVE);
-        Spinner lineChoice = dialog.getCustomView().findViewById(R.id.sp_line);
-        Spinner stationChoice = dialog.getCustomView().findViewById(R.id.sp_station);
+        final Spinner lineChoice = dialog.getCustomView().findViewById(R.id.sp_line);
+        final Spinner stationChoice = dialog.getCustomView().findViewById(R.id.sp_station);
         Spinner destinationChoice = dialog.getCustomView().findViewById(R.id.sp_destination);
-        TransportChoiceAdapter transportChoiceAdapter = new TransportChoiceAdapter(MainActivity.this, R.layout.support_simple_spinner_dropdown_item);
 
-        lineChoice.setAdapter(transportChoiceAdapter);
+        Transport transport = Transport.METROS;
+        for (Transport t : Transport.values()) {
+            if (transportType.equals(t.toString()))
+                transport = t;
+        }
+
+        final Transport finalTransport = transport;
+
+        mLineChoiceAdapter = new TransportChoiceAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item);
+        mStationChoiceAdapter = new TransportChoiceAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item);
+        mDestinationsChoiceAdapter = new TransportChoiceAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item);
+
+        lineChoice.setAdapter(mLineChoiceAdapter);
+        stationChoice.setAdapter(mStationChoiceAdapter);
+        destinationChoice.setAdapter(mDestinationsChoiceAdapter);
+
+        lineChoice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String line = mLineChoiceAdapter.getLine(finalTransport, position).toString();
+                loadStations(finalTransport, line);
+//                loadDestinations(finalTransport, line);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        loadLines(transport);
 
         /* passwordInput = dialog.getCustomView().findViewById(R.id.password);
         passwordInput.addTextChangedListener(

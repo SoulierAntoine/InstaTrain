@@ -10,23 +10,6 @@ import java.util.List;
  */
 
 public class Line {
-    // TODO : tmp
-    public void setmCode(String mCode) {
-        this.mCode = mCode;
-    }
-
-    public void setmName(String mName) {
-        this.mName = mName;
-    }
-
-    public void setmDirections(String mDirections) {
-        this.mDirections = mDirections;
-    }
-
-    public void setmId(String mId) {
-        this.mId = mId;
-    }
-
     @SerializedName("code")
     private String mCode;
     public String getCode() { return mCode; }
@@ -42,6 +25,9 @@ public class Line {
     @SerializedName("id")
     private String mId;
     public String getId() { return mId; }
+
+    @Override
+    public String toString() { return mCode; }
 
     public class MetroLine extends Line {}
     private List<MetroLine> mMetroLines;
