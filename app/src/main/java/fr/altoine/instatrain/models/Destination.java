@@ -2,6 +2,8 @@ package fr.altoine.instatrain.models;
 
 import com.google.gson.annotations.SerializedName;
 
+import fr.altoine.instatrain.utils.Ways;
+
 /**
  * Destination - InstaTrain
  * Created by Antoine on 02/10/2017.

@@ -37,13 +37,14 @@ public class TransportsFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_transports, container, false);
+//        View rootView = inflater.inflate(R.layout.fragment_transports, container, false);
+        return inflater.inflate(R.layout.fragment_transports, container, false);
 
-        if (getArguments() != null) {
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_PAGE)));
-        }
+//        if (getArguments() != null) {
+//            TextView textView = rootView.findViewById(R.id.section_label);
+//            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_PAGE)));
+//        }
 
-        return rootView;
+//        return rootView;
     }
 }

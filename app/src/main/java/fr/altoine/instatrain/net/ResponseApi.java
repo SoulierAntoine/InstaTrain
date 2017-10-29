@@ -29,11 +29,8 @@ public class ResponseApi {
     /**
          [result] =>
              - /traffic contient 3 listes (1 / moyen de transport), chacune a pour nom le moyen de transport et contient une liste de Traffic
-             - /lines contient 3 listes (1 / moyen de transport), chacune a pour nom le moyen de transport et contient une liste de Line
 
-             - /traffic/{m|r|t} : a pour nom le moyen de transport, contient une liste de Traffic
              - /lines/{m|r|t} : a pour nom le moyen de transport, contient une liste de Line
-
 
              - /stations/{m|r|t}/{line} a pour nom "stations", contient une liste de Station
              - /destinations/{m|r|t}/{line} a pour nom "destinations", contient une liste de Destination
@@ -49,9 +46,10 @@ public class ResponseApi {
         public Traffic getTraffics() { return mTraffics; }
         public void setTraffics(Traffic traffics) { mTraffics = traffics; }
 
-        private Line mLines;
-        public Line getLines() { return mLines; }
-        public void setLines(Line lines) { mLines = lines; }
+        @SerializedName(value = "metros", alternate = {"rers", "tramways"})
+        private List<Line> mLines;
+        public List<Line> getLines() { return mLines; }
+        public void setLines(List<Line> lines) { mLines = lines; }
 
         @SerializedName("stations")
         private List<Station> mStations;

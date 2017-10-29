@@ -8,6 +8,7 @@ import java.util.Map;
 
 import fr.altoine.instatrain.net.ResponseApi;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
@@ -33,8 +34,9 @@ public class RetrofitFactory {
     private static Retrofit getInstance() {
         if (mRetrofit == null) {
             mRetrofit = new Retrofit.Builder()
-                    .addConverterFactory(buildGsonConverterFactory())
                     .baseUrl(Constants.API_URL)
+                    .addConverterFactory(buildGsonConverterFactory())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .build();
         }
 

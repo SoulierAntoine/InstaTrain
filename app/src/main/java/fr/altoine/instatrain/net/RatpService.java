@@ -1,9 +1,10 @@
 package fr.altoine.instatrain.net;
 
 
-import fr.altoine.instatrain.models.Transport;
-import fr.altoine.instatrain.models.Ways;
-import retrofit2.Call;
+
+import fr.altoine.instatrain.utils.Transport;
+import fr.altoine.instatrain.utils.Ways;
+import io.reactivex.Observable;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 
@@ -13,20 +14,21 @@ import retrofit2.http.Path;
  */
 public interface RatpService {
     @GET("traffic")
-    Call<ResponseApi> getGlobalTraffic();
+    Observable<ResponseApi> getGlobalTraffic();
+//    Call<ResponseApi> getGlobalTraffic();
 
     @GET("traffic/{transport}")
-    Call<ResponseApi> getTransportTraffic(@Path("transport") Transport transport);
+    Observable<ResponseApi> getTransportTraffic(@Path("transport") Transport transport);
 
     @GET("lines/{transport}")
-    Call<ResponseApi> getTransportLines(@Path("transport") Transport transport);
+    Observable<ResponseApi> getTransportLines(@Path("transport") Transport transport);
 
     @GET("stations/{transport}/{line}")
-    Call<ResponseApi> getStations(@Path("transport") Transport transport, @Path("line") String line);
+    Observable<ResponseApi> getStations(@Path("transport") Transport transport, @Path("line") String line);
 
     @GET("destinations/{transport}/{line}")
-    Call<ResponseApi> getDestinations(@Path("transport") Transport transport, @Path("line") String line);
+    Observable<ResponseApi> getDestinations(@Path("transport") Transport transport, @Path("line") String line);
 
     @GET("schedules/{transport}/{line}/{station}/{way}")
-    Call<ResponseApi> getSchedule(@Path("transport") Transport transport, @Path("line") String line, @Path("station") String station, @Path("way") Ways way);
+    Observable<ResponseApi> getSchedules(@Path("transport") Transport transport, @Path("line") String line, @Path("station") String station, @Path("way") Ways way);
 }

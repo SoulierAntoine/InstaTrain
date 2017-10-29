@@ -17,4 +17,10 @@ public class Station {
     public String getName() {
         return mName;
     }
+
+    // TODO: when using "toString", rather use according getter
+    @Override
+    public String toString() {
+        return mSlug;
+    }
 }

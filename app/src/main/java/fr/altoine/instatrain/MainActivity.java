@@ -2,13 +2,11 @@ package fr.altoine.instatrain;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,7 +17,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.lang.reflect.Method;
@@ -30,23 +27,23 @@ import fr.altoine.instatrain.adapters.TransportChoiceAdapter;
 import fr.altoine.instatrain.adapters.TransportsPagerAdapter;
 import fr.altoine.instatrain.listeners.NoConnectionListener;
 import fr.altoine.instatrain.listeners.RetryActionListener;
-import fr.altoine.instatrain.loader.Callback;
-import fr.altoine.instatrain.loader.RetrofitLoaderManager;
 import fr.altoine.instatrain.models.Destination;
 import fr.altoine.instatrain.models.Line;
+import fr.altoine.instatrain.models.Schedule;
 import fr.altoine.instatrain.models.Station;
-import fr.altoine.instatrain.models.Transport;
-import fr.altoine.instatrain.net.RatpLoader.DestinationLoader;
-import fr.altoine.instatrain.net.RatpLoader.LineLoader;
-import fr.altoine.instatrain.net.RatpLoader.StationLoader;
+import fr.altoine.instatrain.utils.Transport;
+import fr.altoine.instatrain.utils.Ways;
 import fr.altoine.instatrain.net.RatpService;
 import fr.altoine.instatrain.net.ResponseApi;
 import fr.altoine.instatrain.utils.RetrofitFactory;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 
 
 public class MainActivity extends AppCompatActivity implements
         NoConnectionListener,
-        Callback<ResponseApi>,
+//        Callback<ResponseApi>,
         View.OnClickListener {
 
 
@@ -67,6 +64,12 @@ public class MainActivity extends AppCompatActivity implements
     private Button mRetryAction;
 
 
+    // Network ------------------------------------------------------------------------------------
+
+    private CompositeDisposable mCompositeDisposable = new CompositeDisposable();;
+    private RatpService mRatpService;
+
+
     // Miscellaneous ------------------------------------------------------------------------------
 
     private RetryActionListener retryActionListener;
@@ -80,44 +83,41 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // mNoConnectionLayout = (FrameLayout) findViewById(R.id.fl_no_connection);
-        mNoConnectionImage = (ImageView) findViewById(R.id.iv_no_connection);
-        mNoConnectionText = (TextView) findViewById(R.id.tv_no_connection);
-        mRetryAction = (Button) findViewById(R.id.btn_retry);
+        mNoConnectionImage = findViewById(R.id.iv_no_connection);
+        mNoConnectionText = findViewById(R.id.tv_no_connection);
+        mRetryAction = findViewById(R.id.btn_retry);
         mRetryAction.setOnClickListener(this);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Create the adapter that will return a fragment for each sections of the activity
         mTransportsPagerAdapter = setUpPagerAdapter();
 
         // Set up the ViewPager with the sections adapter
-        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager = findViewById(R.id.container);
         mViewPager.setAdapter(mTransportsPagerAdapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+        mRatpService = RetrofitFactory.getApi(RatpService.class);
+
         // Set up the FloatingActionButton for other than ResponseTraffic tabs
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
             switch (mCurrentTab) {
                 case 1:
-                    showCustomView("metro");
+                    showCustomView("metros");
                     break;
                 case 2:
-                    showCustomView("RER");
+                    showCustomView("rers");
                     break;
                 case 3:
-                    showCustomView("tramway");
+                    showCustomView("tramways");
                     break;
                 default:
                     break;
-//                    TrainScheduleDialogFragment f = new TrainScheduleDialogFragment();
-//                    f.show(getFragmentManager(), "dialog");
             }
         });
 
@@ -140,6 +140,12 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mCompositeDisposable.clear();
     }
 
     private TransportsPagerAdapter setUpPagerAdapter() {
@@ -255,34 +261,105 @@ public class MainActivity extends AppCompatActivity implements
 
 
 
-
-
-    public void loadLines(Transport t) {
-        RetrofitLoaderManager.init(
-                getLoaderManager(), 100,
-                new LineLoader(this, RetrofitFactory.getApi(RatpService.class), t),
-                this);
-    }
-
-    public void loadStations(Transport transport, String line) {
-        RetrofitLoaderManager.init(
-                getLoaderManager(), 100,
-                new StationLoader(this, RetrofitFactory.getApi(RatpService.class), transport, line),
-                this);
-    }
-
-    public void loadDestinations(Transport transport, String line) {
-        RetrofitLoaderManager.init(
-                getLoaderManager(), 100,
-                new DestinationLoader(this, RetrofitFactory.getApi(RatpService.class), transport, line),
-                this);
-    }
-
     private TransportChoiceAdapter<String> mLineChoiceAdapter;
     private TransportChoiceAdapter<String> mStationChoiceAdapter;
     private TransportChoiceAdapter<String> mDestinationsChoiceAdapter;
 
-    @Override
+    private void onSuccessLoadLines(ResponseApi result) {
+        mLineChoiceAdapter.setResponseApi(result);
+        List<Line> resultLine = result.getResult().getLines();
+        if (resultLine != null) {
+            mStationChoiceAdapter.clear();
+            for (Line line : resultLine) {
+                mLineChoiceAdapter.add(line.getName() + " - " + line.getDirections());
+            }
+            mLineChoiceAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void onSuccessLoadStations(ResponseApi result) {
+        mStationChoiceAdapter.setResponseApi(result);
+        List<Station> resultStation = result.getResult().getStations();
+        if (resultStation != null) {
+            mStationChoiceAdapter.clear();
+            for (Station station : resultStation) {
+                mStationChoiceAdapter.add(station.getName());
+            }
+
+            mLineChoiceAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void onSuccessLoadDestinations(ResponseApi result) {
+        mDestinationsChoiceAdapter.setResponseApi(result);
+        List<Destination> resultDestination = result.getResult().getDestinations();
+        if (resultDestination != null) {
+            mDestinationsChoiceAdapter.clear();
+            for (Destination destination : resultDestination) {
+                mDestinationsChoiceAdapter.add(destination.getName());
+            }
+
+            mDestinationsChoiceAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void onSuccessLoadSchedules(ResponseApi result) {
+//        mDestinationsChoiceAdapter.setResponseApi(result);
+        List<Schedule> resultSchedules = result.getResult().getSchedules();
+        if (resultSchedules != null) {
+//            mDestinationsChoiceAdapter.clear();
+            for (Schedule schedule : resultSchedules) {
+//                mDestinationsChoiceAdapter.add(destination.getName());
+                Toast.makeText(MainActivity.this, schedule.toString(), Toast.LENGTH_LONG).show();
+            }
+
+//            mDestinationsChoiceAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void onError(Throwable e) {
+        e.printStackTrace();
+    }
+
+    public void loadLines(Transport transport) {
+        mCompositeDisposable.add(mRatpService.getTransportLines(transport)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(this::onSuccessLoadLines, this::onError)
+        );
+        /* RetrofitLoaderManager.init(
+                getLoaderManager(), 100,
+                new LineLoader(this, RetrofitFactory.getApi(RatpService.class), t),
+                this); */
+
+    }
+
+    public void loadStations(Transport transport, String line) {
+        mCompositeDisposable.add(mRatpService.getStations(transport, line)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(this::onSuccessLoadStations, this::onError)
+        );
+        /* RetrofitLoaderManager.init(
+                getLoaderManager(), 100,
+                new StationLoader(this, RetrofitFactory.getApi(RatpService.class), transport, line),
+                this); */
+    }
+
+    public void loadDestinations(Transport transport, String line) {
+        mCompositeDisposable.add(mRatpService.getDestinations(transport, line)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(this::onSuccessLoadDestinations, this::onError)
+        );
+        /* RetrofitLoaderManager.init(
+                getLoaderManager(), 100,
+                new DestinationLoader(this, RetrofitFactory.getApi(RatpService.class), transport, line),
+                this); */
+    }
+
+
+    /* @Override
     public void onFailure(Exception ex) {
         Log.v(TAG, "bar");
     }
@@ -293,17 +370,16 @@ public class MainActivity extends AppCompatActivity implements
         Log.v(TAG, "foo");
         mLineChoiceAdapter.setResponseApi(result);
 
-        Line resultLine = result.getResult().getLines();
+//        Line resultLine = result.getResult().getLines();
+        Line resultLine = null;
         if (resultLine != null) {
             List<Line> lines = new ArrayList<>();
             if (resultLine.getMetroLines() != null) {
                 lines = (List<Line>) ((List<?>) resultLine.getMetroLines());
             } else if (resultLine.getRerLines() != null) {
-                lines = (List<Line>) ((List<?>) resultLine.getMetroLines());
-//                List<Line.RerLine> lines = line.getRerLines();
+                lines = (List<Line>) ((List<?>) resultLine.getRerLines());
             } else if (resultLine.getTramwayLines() != null) {
-                lines = (List<Line>) ((List<?>) resultLine.getMetroLines());
-//                List<Line.TramwayLine> lines = line.getTramwayLines();
+                lines = (List<Line>) ((List<?>) resultLine.getTramwayLines());
             }
 
             for (Line line : lines) {
@@ -330,30 +406,30 @@ public class MainActivity extends AppCompatActivity implements
 
             mDestinationsChoiceAdapter.notifyDataSetChanged();
         }
-    }
+    } */
 
 
     // TODO: tmp
     public void showCustomView(String transportType) {
-        MaterialDialog dialog =
+//        MaterialDialog formScheduleTransport =
+        MaterialDialog formScheduleTransport =
                 new MaterialDialog.Builder(this)
                         .title(getString(R.string.next_transport, transportType))
                         .customView(R.layout.fragment_train_schedule_dialog, true)
-                        .positiveText(R.string.connect)
+                        .positiveText(R.string.ok)
                         .negativeText(android.R.string.cancel)
-                        .onPositive(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-//                                Toast.makeText(MainActivity.this, "Password: " + passwordInput.getText().toString(), Toast.LENGTH_SHORT).show();
-                                Toast.makeText(MainActivity.this, "Foo", Toast.LENGTH_SHORT).show();
-                            }
-                        })
+                        /* .onPositive((dialog, which) -> {
+                            mCompositeDisposable.add(mRatpService.getSchedules()
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribeOn(Schedulers.io())
+                            .subscribe(this::onSuccessLoadSchedules, this::onError));
+                        }) */
                         .build();
 
-        View positiveAction = dialog.getActionButton(DialogAction.POSITIVE);
-        final Spinner lineChoice = dialog.getCustomView().findViewById(R.id.sp_line);
-        final Spinner stationChoice = dialog.getCustomView().findViewById(R.id.sp_station);
-        Spinner destinationChoice = dialog.getCustomView().findViewById(R.id.sp_destination);
+//        View positiveAction = formScheduleTransport.getActionButton(DialogAction.POSITIVE);
+        final Spinner lineChoice = formScheduleTransport.getCustomView().findViewById(R.id.sp_line);
+        final Spinner stationChoice = formScheduleTransport.getCustomView().findViewById(R.id.sp_station);
+        final Spinner destinationChoice = formScheduleTransport.getCustomView().findViewById(R.id.sp_destination);
 
         Transport transport = Transport.METROS;
         for (Transport t : Transport.values()) {
@@ -362,6 +438,19 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         final Transport finalTransport = transport;
+
+        formScheduleTransport = formScheduleTransport.getBuilder().onPositive((dialog, which) ->
+                mCompositeDisposable.add(mRatpService.getSchedules(
+                        finalTransport,
+                        mLineChoiceAdapter.getLine(lineChoice.getSelectedItemPosition()).toString(),
+                        mStationChoiceAdapter.getStation(stationChoice.getSelectedItemPosition()).toString(),
+//                        mDestinationsChoiceAdapter.getElement(destinationChoice.getSelectedItemPosition()))
+                        Ways.A)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(this::onSuccessLoadSchedules, this::onError))).build();
+
+
 
         mLineChoiceAdapter = new TransportChoiceAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item);
         mStationChoiceAdapter = new TransportChoiceAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item);
@@ -374,9 +463,9 @@ public class MainActivity extends AppCompatActivity implements
         lineChoice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String line = mLineChoiceAdapter.getLine(finalTransport, position).toString();
+                String line = mLineChoiceAdapter.getLine(position).toString();
                 loadStations(finalTransport, line);
-//                loadDestinations(finalTransport, line);
+                loadDestinations(finalTransport, line);
             }
 
             @Override
@@ -420,7 +509,7 @@ public class MainActivity extends AppCompatActivity implements
                 passwordInput,
                 widgetColor == 0 ? ContextCompat.getColor(this, R.color.accent) : widgetColor); */
 
-        dialog.show();
-        positiveAction.setEnabled(false); // disabled by default
+        formScheduleTransport.show();
+//        positiveAction.setEnabled(false);
     }
 }

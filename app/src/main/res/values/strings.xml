@@ -24,6 +24,7 @@
     <string name="choose_line">Choose a line</string>
     <string name="choose_station">Choose a station</string>
     <string name="choose_destination">Choose a destination</string>
+    <string name="ok">OK</string>
 
     <!-- TMP -->
     <string name="signalStrength">Signal strength</string>

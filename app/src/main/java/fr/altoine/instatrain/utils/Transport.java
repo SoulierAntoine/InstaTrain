@@ -1,4 +1,4 @@
-package fr.altoine.instatrain.models;
+package fr.altoine.instatrain.utils;
 
 /**
  * Transport - Instatrain

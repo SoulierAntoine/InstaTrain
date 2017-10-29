@@ -1,15 +1,5 @@
 package fr.altoine.instatrain.net;
 
-import android.content.Context;
-import android.util.Log;
-
-import java.io.IOException;
-
-import fr.altoine.instatrain.loader.RetrofitLoader;
-import fr.altoine.instatrain.models.Transport;
-import retrofit2.Call;
-import retrofit2.Response;
-
 /**
  * RatpLoader - InstaTrain
  * Created by Antoine on 17/10/2017.
@@ -17,7 +7,7 @@ import retrofit2.Response;
 
 public class RatpLoader {
     // TODO: avoid creating 3 different classes that do the exact same thing (just the method is different)
-    public static class StationLoader extends RetrofitLoader<ResponseApi, RatpService> {
+    /* public static class StationLoader extends RetrofitLoader<ResponseApi, RatpService> {
         private final Transport mTransport;
         private final String mLine;
 
@@ -95,5 +85,5 @@ public class RatpLoader {
             mTransport = transport;
             mLine = line;
         }
-    }
+    } */
 }

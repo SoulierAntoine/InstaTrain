@@ -17,4 +17,10 @@ public class Schedule {
     @SerializedName("destination")
     private String mDestination;
     public String getDestination() { return mDestination; }
+
+    @Override
+    public String toString() {
+        return "Schedule :" + mMessage + '\n' +
+               "Destination : " + mDestination;
+    }
 }

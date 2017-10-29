@@ -12,9 +12,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.altoine.instatrain.models.Line;
 import fr.altoine.instatrain.models.Traffic;
-import fr.altoine.instatrain.models.Transport;
 import fr.altoine.instatrain.net.ResponseApi;
 
 
@@ -44,37 +42,24 @@ public class RatpJsonDeserializer implements JsonDeserializer<ResponseApi.Result
             return result;
 
         Traffic traffics = new Traffic();
-        Line lines = new Line();
 
         // TODO: check if with genericity, there's a clever way of achieving this
         for (Transport transportType : transportTypes) {
             switch (transportType) {
                 case METROS:
                     List<Traffic.MetroTraffic> metroTraffics = g.fromJson(resultObject.get(transportType.toString()), new TypeToken<List<Traffic.MetroTraffic>>() {}.getType());
-                    List<Line.MetroLine> metroLines = g.fromJson(resultObject.get(transportType.toString()), new TypeToken<List<Line.MetroLine>>() {}.getType());
-
                     if (metroTraffics.size() > 0 && metroTraffics.get(0).getLine() != null)
                         traffics.setMetroTraffics(metroTraffics);
-                    if (metroLines.size() > 0 && metroLines.get(0).getCode() != null)
-                        lines.setMetroLines(metroLines);
                     break;
                 case RERS:
                     List<Traffic.RerTraffic> rerTraffics = g.fromJson(resultObject.get(transportType.toString()), new TypeToken<List<Traffic.RerTraffic>>() {}.getType());
-                    List<Line.RerLine> rerLines = g.fromJson(resultObject.get(transportType.toString()), new TypeToken<List<Line.RerLine>>() {}.getType());
-
                     if (rerTraffics.size() > 0 && rerTraffics.get(0).getLine() != null)
                         traffics.setRerTraffics(rerTraffics);
-                    if (rerLines.size() > 0 && rerLines.get(0).getCode() != null)
-                        lines.setRerLines(rerLines);
                     break;
                 case TRAMWAYS:
                     List<Traffic.TramwayTraffic> tramwayTraffics = g.fromJson(resultObject.get(transportType.toString()), new TypeToken<List<Traffic.TramwayTraffic>>() {}.getType());
-                    List<Line.TramwayLine> tramwayLines = g.fromJson(resultObject.get(transportType.toString()), new TypeToken<List<Line.TramwayLine>>() {}.getType());
-
                     if (tramwayTraffics.size() > 0 && tramwayTraffics.get(0).getLine() != null)
                         traffics.setTramwayTraffics(tramwayTraffics);
-                    if (tramwayLines.size() > 0 && tramwayLines.get(0).getCode() != null)
-                        lines.setTramwayLines(tramwayLines);
                     break;
                 default:
                     return null;
@@ -83,8 +68,6 @@ public class RatpJsonDeserializer implements JsonDeserializer<ResponseApi.Result
 
         if (traffics.getMetroTraffics() != null || traffics.getRerTraffics() != null || traffics.getTramwayTraffics() != null)
             result.setTraffics(traffics);
-        if (lines.getMetroLines() != null || lines.getRerLines() != null || lines.getTramwayLines() != null)
-            result.setLines(lines);
 
         return result;
     }
